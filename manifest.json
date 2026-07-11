@@ -1,0 +1,20 @@
+{
+    "name": "Kaizen App",
+    "short_name": "Kai",
+    "start_url" : ".",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#FFD700",
+    "icons": [
+    {
+        "src": "kaizen-logo-icon-192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+    },
+    {
+        "src": "kaizen-logo-icon-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+    }
+    ]
+}

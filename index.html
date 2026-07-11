@@ -1,1 +1,26 @@
-<h1>Judul</h1>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" />
+    <title>Document</title>
+    <link rel="manifest" href="manifest.json" />
+  </head>
+  <body>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", (event) => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((rgsts) => {
+              console.log("SW terdaftar", rgsts.scope);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
