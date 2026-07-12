@@ -6,25 +6,32 @@
     <meta name="theme-color" content="#0d1230" />
     <title>Kaizen App</title>
     <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
     <script src="db.js"></script>
     <script src="config.js"></script>
+    <script src="ui.js"></script>
   </head>
   <body>
-    <h1>KAIZEN APP</h1>
+    <main class="app">
+      <header class="app-header">
+        <h1>Kaizen</h1>
+        <p id="tanggal-hari-ini" class="tanggal"></p>
+      </header>
+      <ul id="daftar-habit" class="daftar"></ul>
+      <p id="ringkasan" class="ringkasan"></p>
+    </main>
+
     <script>
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", (event) => {
+        window.addEventListener("load", () => {
           navigator.serviceWorker
             .register("./sw.js")
-            .then((rgsts) => {
-              console.log("SW terdaftar", rgsts.scope);
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+            .then((reg) => console.log("SW terdaftar", reg.scope))
+            .catch((err) => console.log(err));
         });
       }
-      seedJikaKosong();
+      // Seed dulu (kalau perlu), baru gambar checklist.
+      seedJikaKosong().then(() => tampilkanChecklist());
     </script>
   </body>
 </html>
