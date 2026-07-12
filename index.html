@@ -18,6 +18,7 @@
     <script src="kaizen.js"></script>
     <script src="recovery.js"></script>
     <script src="dashboard.js"></script>
+    <script src="settings.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -38,6 +39,7 @@
       <footer class="app-footer">
         <button id="btn-ekspor" class="tombol">⬇ Ekspor data</button>
         <button id="btn-impor" class="tombol">⬆ Impor data</button>
+        <button id="btn-setelan" class="tombol">⚙ Setelan</button>
         <input id="file-impor" type="file" accept="application/json" hidden />
       </footer>
     </main>
@@ -53,6 +55,7 @@
             .catch((err) => console.log(err));
         });
       }
+      muatTema();
       // Seed dulu (kalau perlu), baru gambar checklist.
       seedJikaKosong()
         .then(() => ambilKarakter())
@@ -64,6 +67,7 @@
         .then(() => renderDashboard());
       pasangTombolSync();
       pasangTombolJurnal();
+      pasangTombolSetelan();
     </script>
   </body>
 </html>
