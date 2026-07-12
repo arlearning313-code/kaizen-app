@@ -91,3 +91,91 @@ async function habitTerlewatKemarin() {
   const dueKemarin = await habitHariIni(kemarin);
   return new Set(dueKemarin.filter((h) => !doneSet.has(h.id)).map((h) => h.id));
 }
+
+
+// ── MODUL 17: Aturan Delevel — sinyal restrukturisasi, bukan hukuman ──
+// TIDAK men-delevel karena: relapse (sudah = Failure Debrief), sakit 1–2 hari,
+// atau gagal di level tertinggi sebuah habit (itu menurunkan level HABIT, bukan karakter).
+
+// Berapa hari berturut (dari hari ini mundur) skor < ambangPersen.
+async function hitungHariBerturutRendah(ambangPersen) {
+  const logs = await ambilSemua("logs");
+  if (logs.length === 0) return 0;
+  const pertama = logs.map((l) => l.date).sort()[0];
+  let berturut = 0;
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const tgl = formatTanggal(d);
+    if (tgl < pertama) break;              // sebelum kamu mulai → berhenti
+    const skor = await skorHari(tgl);
+    if (skor === null) continue;           // hari tanpa kewajiban → tak memutus
+    if (skor < ambangPersen) berturut++;
+    else break;                            // ada hari yang cukup → putus
+  }
+  return berturut;
+}
+
+// Berapa hari berturut semua habit Tier S (aktif) diabaikan.
+async function hitungHariTierSDiabaikan() {
+  const logs = await ambilSemua("logs");
+  if (logs.length === 0) return 0;
+  const pertama = logs.map((l) => l.date).sort()[0];
+  const tierS = (await ambilSemua("habits")).filter((h) => h.aktif && h.tier === "S");
+  if (tierS.length === 0) return 0;
+  const idS = new Set(tierS.map((h) => h.id));
+  let berturut = 0;
+  for (let i = 0; i < 400; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const tgl = formatTanggal(d);
+    if (tgl < pertama) break;
+    const logHari = await ambilPerTanggal(tgl);
+    if (logHari.some((l) => l.status === "done" && idS.has(l.habitId))) break;
+    berturut++;
+  }
+  return berturut;
+}
+
+// Berapa hari sejak habit APA PUN terakhir diselesaikan.
+async function hariTanpaHabit() {
+  const logs = await ambilSemua("logs");
+  const doneDates = logs.filter((l) => l.status === "done").map((l) => l.date).sort();
+  if (doneDates.length === 0) return 0;   // belum pernah → jangan hukum
+  return selisihHari(doneDates[doneDates.length - 1], formatTanggal(new Date()));
+}
+
+async function turunLevel(jumlah, alasan) {
+  const k = await ambilKarakter();
+  if (k.level <= 1) return;
+  k.level = Math.max(1, k.level - jumlah);
+  k.diubah = Date.now();
+  await simpan("character", k);
+  alert(`⬇️ Delevel — turun ke Level ${k.level}.\n${alasan}\n\nIni sinyal untuk menata ulang, bukan hukuman. 🕊️`);
+}
+
+async function turunLevelKe(target, alasan) {
+  const k = await ambilKarakter();
+  if (k.level <= target) return;
+  k.level = target;
+  k.diubah = Date.now();
+  await simpan("character", k);
+  alert(`⬇️ Delevel — kembali ke Level ${k.level}.\n${alasan}\n\nBukan hukuman — kesempatan memulai lebih ringan. 🕊️`);
+}
+
+// Periksa semua trigger delevel. Cukup sekali per hari.
+async function cekDelevel() {
+  const k = await ambilKarakter();
+  const hariIni = tanggalHariIni();
+  if (k.delevelDicekPada === hariIni) return;   // sudah dicek hari ini → jangan menumpuk
+  k.delevelDicekPada = hariIni;
+  await simpan("character", k);
+
+  const tanpa = await hariTanpaHabit();
+  if (tanpa >= 60) return turunLevelKe(1, "60 hari tanpa satu pun habit — mulai lagi dari awal.");
+  if (tanpa >= 30) return turunLevel(2, "30 hari tanpa satu pun habit.");
+
+  if ((await hitungHariBerturutRendah(30)) >= 21)
+    return turunLevel(1, "21 hari berturut skor di bawah 30%.");
+
+  if ((await hitungHariTierSDiabaikan()) >= 7)
+    return turunLevel(1, "Semua habit Tier S terlewat 7 hari berturut.");
+}

@@ -21,15 +21,20 @@ function kartuKarakter(k, xp) {
   lv.className = "dash-level";
   lv.textContent = `Level ${k.level}`;
 
+  const st = typeof stageDari === "function" ? stageDari(k.level) : null;
+  const stageEl = document.createElement("div");
+  stageEl.className = "dash-stage";
+  stageEl.textContent = st ? `Stage ${st.no} · ${st.nama}` : "";
+
   const xpEl = document.createElement("div");
   xpEl.className = "dash-xp";
   xpEl.textContent = `${xp.toLocaleString("id-ID")} XP`;
 
   const status = document.createElement("div");
   status.className = "dash-status";
-  status.textContent = k.recovery ? "🛡️ Recovery Mode" : "Aktif";
+  status.textContent = k.recovery ? "🛡️ Recovery Mode" : (st ? st.ringkas : "Aktif");
 
-  card.append(lv, xpEl, status);
+  card.append(lv, stageEl, xpEl, status);
   return card;
 }
 

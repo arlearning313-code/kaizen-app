@@ -6,22 +6,48 @@ const KONFIG = {
   // ── Ambang XP: total XP untuk MENCAPAI level tersebut ───────────
   // Ini angka OTORITATIF — kamu yang tetapkan (rapikan bila dokumenmu tumpang tindih).
   ambangXP: {
-    2: 500,
-    3: 1200,
-    4: 2200,
-    5: 3500,
-    6: 5000,
-    7: 7000,
+    2:500, 3:700, 4:900, 5:1100, 6:1300, 7:1500,
+    8:2000, 9:2500, 10:3000, 11:3500, 12:4000, 13:4500, 14:5000, 15:5500,
+    16:6000, 17:6500, 18:7000, 19:7500, 20:8000, 21:8500, 22:9000, 23:9500, 24:10000, 25:10500,
+    26:11000, 27:11500, 28:12000, 29:12500, 30:13000, 31:13500, 32:14000, 33:14500, 34:15000, 35:15500,
+    36:16000, 37:17000, 38:18000, 39:19000, 40:20000, 41:21000, 42:22000,
+    43:24000, 44:26000, 45:28000, 46:30000, 47:32000, 48:34000,
+    49:38000, 50:45000,
   },
 
   // ── Skill Gate: syarat nyata ya/tidak untuk naik ke level tertentu.
   // Level yang tak disebut = cukup XP, tanpa gate.
   skillGate: {
-    5: { deskripsi: "Python: 100% selesai (bukan 'hampir')", dikonfirmasi: false },
+    7:  { deskripsi: "Konsistensi — ≥2 habit Tier S rate ≥70% selama 30 hari; pola trigger Corruption dikenali." },
+    8:  { deskripsi: "Konsistensi — Corruption turun ke maks 3–4×/minggu selama 2 minggu." },
+    10: { deskripsi: "Konsistensi — Sistem berjalan 3 bulan; ≥3 habit Tier S rate 70%+ selama 90 hari." },
+    13: { deskripsi: "Psikologi — Aktif di ≥1 komunitas online, ≥3 kontribusi bermakna." },
+    15: { deskripsi: "Psikologi — Ada ≥1 manusia yang benar-benar dipercaya." },
+    16: { deskripsi: "Python — 100% selesai; bisa membuat script mandiri." },
+    18: { deskripsi: "Jepang — Hiragana, Katakana, dan N5 (vocab & grammar) dikuasai." },
+    22: { deskripsi: "Freelance — ≥1 percobaan nyata melamar/menawarkan jasa internasional." },
+    24: { deskripsi: "Portfolio — ≥2 project AI/Python solid yang bisa dijelaskan ke klien." },
+    25: { deskripsi: "Jepang — N4 dimulai aktif (Anki dsb.), min 2 minggu konsisten." },
+    27: { deskripsi: "Tabungan — liquid ≥ Rp25.000.000." },
+    35: { deskripsi: "Income — remote/freelance konsisten ≥2 bulan; tabungan > Rp50 juta." },
+    37: { deskripsi: "Jepang — N3 dikuasai; bisa komunikasi sehari-hari." },
+    39: { deskripsi: "Konsistensi — Corruption <1×/bulan selama 3 bulan; relapse tak crash." },
   },
 
   // ── Aturan mesin Kaizen (Modul 6) ──────────────────────────────
   aturanKaizen: { hariMinimal: 21, rateMinimal: 0.8, faktor: 1.2 },
+
+
+  // ── 7 Stage: peta level → babak perjalanan (Modul 17) ──────────
+  stages: [
+    { no: 1, nama: "Survival",              min: 1,  max: 7,  ringkas: "Keluar dari autopilot. Prioritas: jangan berhenti." },
+    { no: 2, nama: "Stabilization",         min: 8,  max: 15, ringkas: "Ritme terbentuk, Corruption turun, koneksi pertama." },
+    { no: 3, nama: "Growth",                min: 16, max: 25, ringkas: "AI Engineering dimulai, portfolio, identitas dari dalam." },
+    { no: 4, nama: "Expansion",             min: 26, max: 35, ringkas: "Dari membangun ke menghasilkan. Income mulai." },
+    { no: 5, nama: "Independence",          min: 36, max: 42, ringkas: "Mandiri, N3 selesai, Corruption sangat jarang." },
+    { no: 6, nama: "Japan Ready",           min: 43, max: 48, ringkas: "Semua syarat difinalkan. Hitungan bulan." },
+    { no: 7, nama: "Dream Nearly Achieved", min: 49, max: 50, ringkas: "Level 50 = keberangkatan." },
+  ],
 
   // ── Daftar habit ───────────────────────────────────────────────
   // Skema tiap habit:
@@ -182,6 +208,12 @@ const KONFIG = {
     },
   ],
 };
+
+// Peta level → salah satu dari 7 Stage (Modul 17).
+function stageDari(level) {
+  const daftar = KONFIG.stages || [];
+  return daftar.find((st) => level >= st.min && level <= st.max) || daftar[daftar.length - 1] || null;
+}
 
 // ── Seeding: isi store "habits" HANYA jika masih kosong ────────────
 async function seedJikaKosong() {
