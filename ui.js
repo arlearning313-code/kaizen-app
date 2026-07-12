@@ -85,12 +85,14 @@ async function tampilkanChecklist() {
     daftar.appendChild(li);
   }
 
-  // Baris ringkasan (persentase asli menyusul di Modul 4)
-  const jumlahSelesai = habits.filter((h) => selesai.has(h.id)).length;
+    // Baris ringkasan — pakai mesin skor Modul 4 (skor.js)
+  const skor = await skorHari(tanggal);
   const ringkasan = document.getElementById("ringkasan");
-  if (habits.length === 0) {
+  if (skor === null) {
     ringkasan.textContent = "Tidak ada habit jatuh tempo hari ini. Istirahat yang cukup. 🌙";
   } else {
-    ringkasan.textContent = `${jumlahSelesai} dari ${habits.length} selesai hari ini`;
+    const jumlahSelesai = habits.filter((h) => selesai.has(h.id)).length;
+    const labelBaik = hariBaik(skor) ? " · hari baik ✨" : "";
+    ringkasan.textContent = `${skor}% — ${jumlahSelesai}/${habits.length} selesai${labelBaik}`;
   }
 }
