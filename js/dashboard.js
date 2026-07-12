@@ -12,32 +12,6 @@ function buatKartu(judul, spanPenuh = false) {
   return card;
 }
 
-// Kartu karakter: level, XP, status.
-function kartuKarakter(k, xp) {
-  const card = buatKartu(null);
-  card.classList.add("dash-karakter");
-
-  const lv = document.createElement("div");
-  lv.className = "dash-level";
-  lv.textContent = `Level ${k.level}`;
-
-  const st = typeof stageDari === "function" ? stageDari(k.level) : null;
-  const stageEl = document.createElement("div");
-  stageEl.className = "dash-stage";
-  stageEl.textContent = st ? `Stage ${st.no} · ${st.nama}` : "";
-
-  const xpEl = document.createElement("div");
-  xpEl.className = "dash-xp";
-  xpEl.textContent = `${xp.toLocaleString("id-ID")} XP`;
-
-  const status = document.createElement("div");
-  status.className = "dash-status";
-  status.textContent = k.recovery ? "🛡️ Recovery Mode" : (st ? st.ringkas : "Aktif");
-
-  card.append(lv, stageEl, xpEl, status);
-  return card;
-}
-
 function kelasIntensitas(skor) {
   if (skor === null) return "h0";
   if (skor >= 80) return "h4";
@@ -187,59 +161,6 @@ async function panelTrophy() {
     ul.appendChild(li);
   }
   card.appendChild(ul);
-  return card;
-}
-
-// Panel Main Quest: 15 misi identitas, konfirmasi manual (mirip Skill Gate).
-async function panelQuest(k) {
-  const card = buatKartu("Main Quest", true);
-  const terbuka = new Set((await ambilSemua("achievements")).map((a) => a.id));
-  const list = document.createElement("div");
-  list.className = "quest-list";
-
-  for (const q of (KONFIG.quests || [])) {
-    const selesai = terbuka.has(q.id);
-    const terkunci = k.level < q.unlock;
-
-    const row = document.createElement("div");
-    row.className = "quest-row";
-
-    const info = document.createElement("div");
-    info.className = "quest-info";
-    const nama = document.createElement("div");
-    nama.className = "quest-nama" + (selesai ? " selesai" : "");
-    nama.textContent = q.nama;
-    const ident = document.createElement("div");
-    ident.className = "quest-ident";
-    ident.textContent = selesai ? `"${q.identitas}"` : `Lv ${q.unlock} · +${q.xp} XP`;
-    info.append(nama, ident);
-
-    const aksi = document.createElement("div");
-    aksi.className = "quest-aksi";
-    if (selesai) {
-      const s = document.createElement("span");
-      s.className = "quest-status ok"; s.textContent = "✅";
-      aksi.appendChild(s);
-    } else if (terkunci) {
-      const s = document.createElement("span");
-      s.className = "quest-status lock"; s.textContent = `🔒 Lv ${q.unlock}`;
-      aksi.appendChild(s);
-    } else {
-      const btn = document.createElement("button");
-      btn.className = "tombol";
-      btn.textContent = "Tandai selesai";
-      btn.addEventListener("click", async () => {
-        if (confirm(`Selesaikan quest "${q.nama}"?\n\nKonfirmasi jujur — hanya jika benar-benar tercapai.\nIdentitas: "${q.identitas}"   (+${q.xp} XP)`)) {
-          await simpan("achievements", { id: q.id, nama: q.nama, hadiah: q.xp, dibuka: new Date().toISOString() });
-          await renderDashboard();
-        }
-      });
-      aksi.appendChild(btn);
-    }
-    row.append(info, aksi);
-    list.appendChild(row);
-  }
-  card.appendChild(list);
   return card;
 }
 

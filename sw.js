@@ -1,5 +1,5 @@
-const NAMA_CACHE = "kaizen-v25"
-const FILE_INTI = ["./", "./index.html", "./styles.css", "./db.js", "./config.js", "./ui.js", "./skor.js", "./sync.js", "./character.js", "./achievements.js", "./journal.js", "./kaizen.js", "./recovery.js", "./dashboard.js", "./settings.js", "./manager.js", "./quest.js", "./trackers.js", "./manifest.json", "./kaizen-logo-icon-192.png", "./kaizen-logo-icon-512.png", "./nafigasi.js", "./fonts/Fraunces-standard.woff2", "./fonts/Newsreader-standard.woff2", "./karakter-ui.js", "./fx.js"]
+const NAMA_CACHE = "kaizen-v29"
+const FILE_INTI = ["./", "./index.html", "./manifest.json", "./css/styles.css", "./img/kaizen-logo-icon-192.png", "./img/kaizen-logo-icon-512.png", "./fonts/Fraunces-standard.woff2", "./fonts/Newsreader-standard.woff2", "./js/db.js", "./js/config.js", "./js/ui.js", "./js/skor.js", "./js/sync.js", "./js/character.js", "./js/achievements.js", "./js/journal.js", "./js/kaizen.js", "./js/recovery.js", "./js/dashboard.js", "./js/manager.js", "./js/quest.js", "./js/trackers.js", "./js/settings.js", "./js/navigasi.js", "./js/karakter-ui.js", "./js/fx.js"]
 
 self.addEventListener("install", (event) => {
     event.waitUntil(

@@ -1,10 +1,8 @@
-// fx.js — STAGE 4: Efek mikro-interaksi. Semua efek hanya jalan di desktop (≥900px);
-// di mobile fungsi-fungsi ini tidak menghasilkan apa pun → tampilan mobile tetap identik.
+// fx.js — Efek mikro-interaksi: burst partikel, "+XP" melayang, perayaan level-up.
+// Berlaku UNIVERSAL (mobile + desktop) karena semuanya terkait aksi centang habit.
 
 let fxPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 document.addEventListener("pointerdown", (e) => { fxPointer = { x: e.clientX, y: e.clientY }; }, true);
-
-function fxDesktop() { return window.innerWidth >= 900; }
 
 // Burst partikel dari titik (x,y).
 function fxBurst(x, y, warna, jumlah = 12) {
@@ -46,7 +44,7 @@ function fxHabitSelesai(habit) {
   if (habit && habit.xp) fxFloatXP(x, y, "+" + habit.xp + " XP", warna);
 }
 
-// Perayaan level-up. Desktop = overlay; mobile = alert lama (teks identik).
+// Perayaan level-up: overlay layar penuh (mobile + desktop).
 function rayakanLevelUp(levelBaru, st) {
   const stg = (typeof stageVisual === "function" && st) ? stageVisual(st.no) : { kanji: "改", c1: "#e8b04b" };
   const ov = document.createElement("div");

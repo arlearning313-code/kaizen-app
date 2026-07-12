@@ -88,6 +88,7 @@ async function tampilkanChecklist() {
 
     const li = document.createElement("li");
     li.className = "baris" + (sudah ? " selesai" : "");
+    li.dataset.rarity = h.rarity || "";
 
     const kotak = document.createElement("span");
     kotak.className = "kotak" + (sudah ? " on" : "");

@@ -332,14 +332,14 @@ body {
 
 @font-face {
   font-family: "Fraunces";
-  src: url("fonts/Fraunces-standard.woff2") format("woff2");
+  src: url("../fonts/Fraunces-standard.woff2") format("woff2");
   font-weight: 100 900;                /* variable: opsz + wght */
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Newsreader";
-  src: url("fonts/Newsreader-standard.woff2") format("woff2");
+  src: url("../fonts/Newsreader-standard.woff2") format("woff2");
   font-weight: 200 800;                /* variable: opsz + wght */
   font-style: normal;
   font-display: swap;
@@ -508,4 +508,64 @@ body {
   .tombol { transition: border-color .15s, color .15s, transform .12s, box-shadow .2s; }
   .tombol:hover { transform: translateY(-1px); }
   .tombol-utama:hover { box-shadow: 0 6px 18px color-mix(in srgb, var(--gold) 45%, transparent); }
+}
+
+/* ===================================================================== */
+/*  STAGE 5 — Poles akhir tiap view (desktop-only).                       */
+/* ===================================================================== */
+@media (min-width: 900px) {
+
+  /* --- Scrollbar bertema --- */
+  * { scrollbar-width: thin; scrollbar-color: rgba(232,176,75,.4) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--gold), var(--torii));
+    border: 2px solid transparent; background-clip: content-box; border-radius: 8px;
+  }
+
+  /* --- Sistem kartu: permukaan gradien + aksen garis atas --- */
+  .dash-card, .manajer-baris, .quest-row {
+    background: linear-gradient(180deg, rgba(23,30,68,.92), rgba(15,20,48,.78));
+    border-color: rgba(255,255,255,.10);
+  }
+  .dash-card { position: relative; overflow: hidden; }
+  .dash-card::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold) 65%, transparent), transparent);
+  }
+  .hero-kar::before { background: linear-gradient(90deg, transparent, var(--c1), transparent); }
+  .dash-judul { color: color-mix(in srgb, var(--gold) 70%, var(--muted)); }
+
+  /* --- Beranda: heatmap & tren lebih hidup --- */
+  .heat { transition: transform .15s ease; }
+  .heat:hover { transform: scale(1.3); z-index: 1; position: relative; }
+  .bar { background: linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--torii) 60%, transparent)); }
+  .bar-kol:hover .bar { filter: brightness(1.2); }
+
+  /* --- Hari Ini: skor sebagai pill --- */
+  .app .ringkasan {
+    font-family: "Fraunces", Georgia, serif; font-size: 20px;
+    width: fit-content; margin: 26px auto 0; padding: 9px 22px;
+    border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line));
+    border-radius: 999px; background: rgba(232,176,75,.06);
+  }
+
+  /* --- Hari Ini: baris habit = "entri quest" dgn aksen rarity --- */
+  .app .baris { position: relative; padding-left: 20px; }
+  .app .baris[data-rarity]::after {
+    content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px;
+    border-radius: 3px; background: var(--rarity, transparent); box-shadow: 0 0 8px var(--rarity, transparent);
+  }
+  .app .baris[data-rarity=""]::after   { display: none; }
+  .app .baris[data-rarity="common"]    { --rarity: #8f8db0; }
+  .app .baris[data-rarity="rare"]      { --rarity: #5aa9e6; }
+  .app .baris[data-rarity="epic"]      { --rarity: #b57ee6; }
+  .app .baris[data-rarity="legendary"] { --rarity: #e8b04b; }
+
+  /* --- Header seksi & judul --- */
+  .manajer-head { padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .quest-mobile-judul { font-family: "Fraunces", Georgia, serif; }
+  .manajer-grup-judul { color: color-mix(in srgb, var(--gold) 55%, var(--muted)); }
+  .manajer-baris { border-radius: 14px; }
 }
