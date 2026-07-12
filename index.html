@@ -20,6 +20,7 @@
     <script src="dashboard.js"></script>
     <script src="manager.js"></script>
     <script src="quest.js"></script>
+    <script src="trackers.js"></script>
     <script src="settings.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
@@ -70,6 +71,7 @@
         .then(() => cekDelevel())
         .then(() => tampilkanChecklist())
         .then(() => cekAchievements())
+        .then(() => cekNaikLevel())
         .then(() => cekSuratMasaDepan())
         .then(() => tawarkanKaizen())
         .then(() => renderDashboard())

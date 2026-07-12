@@ -134,6 +134,7 @@ async function panelSkillGate(k, xp) {
       btn.addEventListener("click", async () => {
         if (confirm(`Konfirmasi jujur — "${gate.deskripsi}"?\n\nTak bisa dipalsukan. Hanya centang kalau benar-benar selesai.`)) {
           await konfirmasiGate(target);
+          if (typeof cekNaikLevel === "function") await cekNaikLevel(); // gate lolos → mungkin naik level
           await renderDashboard();
         }
       });
@@ -257,4 +258,9 @@ async function renderDashboard() {
   el.appendChild(await trenMingguan(8));
   el.appendChild(await panelPemicu());
   el.appendChild(await panelTrophy());
+
+  // MODUL 20: tracker khusus (opsional)
+  if (typeof panelCorruption === "function") el.appendChild(await panelCorruption());
+  if (typeof panelJapanFund === "function") el.appendChild(await panelJapanFund());
+  if (typeof panelBahasa === "function") el.appendChild(await panelBahasa());
 }

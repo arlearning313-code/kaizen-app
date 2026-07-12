@@ -201,3 +201,9 @@ body {
 .baris.terkunci:hover { border-color: var(--line); }
 .badge-lock { margin-left: auto; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
 .badge-xp { margin-left: auto; font-size: 11px; color: var(--gold); white-space: nowrap; }
+
+/* Tracker khusus (Modul 20) */
+.tracker-angka { font-size: 26px; font-weight: 700; color: #fff; margin: 2px 0 6px; }
+.tracker-neuro { color: var(--gold); }
+.tracker-input { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tracker-input .modal-input { margin-top: 0; flex: 1 1 140px; width: auto; }

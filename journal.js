@@ -97,6 +97,7 @@ async function catatRelapse() {
 
   await simpanEntri("debrief", "", jawaban); // +20 XP dihitung otomatis oleh totalXP()
   await cekAchievements();
+  if (typeof cekNaikLevel === "function") await cekNaikLevel();
   alert("Tersimpan. +20 XP. Lanjutkan dari hari berikutnya — dengan lembut. 🌱");
 }
 

@@ -14,6 +14,7 @@ async function ambilKarakter() {
     };
     await simpan("character", k);
   }
+  if (!k.gateDikonfirmasi) k.gateDikonfirmasi = {}; // amankan karakter lama / hasil impor
   return k;
 }
 
@@ -72,4 +73,28 @@ async function naikLevel() {
   k.diubah = Date.now();
   await simpan("character", k);
   return true;
+}
+
+// Naikkan level sebanyak yang layak (bisa >1 sekaligus), lalu beri tahu &
+// gambar ulang. Dipanggil tiap kali XP berubah. Aman terhadap loop (dibatasi).
+async function cekNaikLevel() {
+  let naik = 0, levelBaru = null;
+  for (let pass = 0; pass < 5; pass++) {          // batas aman: level→trophy level→level lagi
+    let naikPass = 0;
+    while (await naikLevel()) {
+      naikPass++; naik++;
+      levelBaru = (await ambilKarakter()).level;
+    }
+    if (naikPass === 0) break;
+    if (typeof cekAchievements === "function") await cekAchievements(); // trophy berbasis level
+  }
+  if (naik > 0) {
+    const st = typeof stageDari === "function" ? stageDari(levelBaru) : null;
+    alert(`⬆️ Naik ke Level ${levelBaru}${st ? " · " + st.nama : ""}!\n\nTerus melangkah. 📈`);
+    if (typeof renderDashboard === "function") await renderDashboard();
+    if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
+    if (typeof renderQuestMobile === "function") await renderQuestMobile();
+    if (typeof renderManajerQuest === "function") await renderManajerQuest();
+  }
+  return naik;
 }

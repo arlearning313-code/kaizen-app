@@ -10,7 +10,7 @@ async function ambilQuests() {
   return rec && Array.isArray(rec.value) ? rec.value : [];
 }
 async function simpanQuests(daftar) {
-  await simpan("settings", { key: "quests", value: daftar });
+  await simpan("settings", { key: "quests", value: daftar, diubah: Date.now() });
 }
 async function seedQuestsJikaKosong() {
   const ada = await ambilQuests();
@@ -33,6 +33,7 @@ async function toggleQuest(q) {
   await renderQuestMobile();
   if (typeof renderManajerQuest === "function") await renderManajerQuest();
   if (typeof renderDashboard === "function") await renderDashboard();
+  if (typeof cekNaikLevel === "function") await cekNaikLevel(); // quest = XP → mungkin naik level
 }
 
 // ── MOBILE: daftar quest yang bisa dicentang ───────────────────────────
