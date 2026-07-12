@@ -383,3 +383,67 @@ body {
   /* Sedikit lega untuk keterbacaan serif */
   .dash-teks, .nama, .manajer-nama, .quest-nama { letter-spacing: .002em; }
 }
+
+/* ===================================================================== */
+/*  STAGE 3 — Emblem karakter RPG (ring XP + aura + evolusi stage).       */
+/* ===================================================================== */
+@media (min-width: 900px) {
+
+  /* Emblem umum */
+  .emblem { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
+  .emblem-ring { position: absolute; inset: 0; }
+  .emblem-ring .ring-maju { transition: stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1); }
+  .emblem::before {
+    content: ""; position: absolute; inset: -8%; border-radius: 50%; z-index: 0;
+    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--c1) 50%, transparent), transparent 70%);
+    animation: aura-nafas 3.6s ease-in-out infinite;
+  }
+  .emblem-inti {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    width: 70%; height: 70%; border-radius: 50%;
+    background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--c1) 28%, #0b1030), #0a0e26 78%);
+    border: 1px solid color-mix(in srgb, var(--c1) 45%, transparent);
+    box-shadow: inset 0 0 20px rgba(0,0,0,.55);
+  }
+  .emblem-kanji {
+    font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", serif;
+    color: #fff; line-height: 1; text-shadow: 0 0 12px var(--c1);
+  }
+  .emblem-lv { color: var(--muted); letter-spacing: .06em; }
+
+  /* Sidebar: emblem kompak */
+  #sidebar-karakter.side-kar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 4px 12px 18px; margin-bottom: 14px; cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .side-kar .emblem-kanji { font-size: 30px; }
+  .side-kar .emblem-lv { font-size: 10px; }
+  .side-kar-info { min-width: 0; }
+  .side-kar-stage { font-family: "Fraunces", serif; font-size: 16px; color: #fff; }
+  .side-kar-xp { font-size: 13px; color: var(--gold); margin-top: 1px; }
+  .side-kar-sisa { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  #sidebar-karakter.side-kar:hover .emblem::before { animation-duration: 1.8s; }
+
+  /* Dashboard: hero */
+  .hero-kar { display: flex; align-items: center; gap: 26px; }
+  .hero-emblem { flex: 0 0 auto; }
+  .hero-kar .emblem-kanji { font-size: 48px; }
+  .hero-kar .emblem-lv { display: none; }
+  .hero-info { min-width: 0; }
+  .hero-stage { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--c1); font-weight: 600; }
+  .hero-level { font-family: "Fraunces", serif; font-size: 34px; color: #fff; font-weight: 600; margin: 2px 0; }
+  .hero-xp { font-size: 15px; color: var(--gold); }
+  .hero-bar { height: 7px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; margin: 10px 0 6px; max-width: 420px; }
+  .hero-bar span { display: block; height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--c2), var(--c1)); box-shadow: 0 0 10px var(--c1);
+    transition: width .9s cubic-bezier(.2,.8,.2,1); }
+  .hero-sisa { font-size: 13px; color: var(--ink); }
+  .hero-ringkas { font-size: 13px; color: var(--muted); margin-top: 6px; max-width: 520px; }
+}
+
+@keyframes aura-nafas {
+  0%, 100% { opacity: .55; transform: scale(.98); }
+  50%      { opacity: .90; transform: scale(1.06); }
+}

@@ -252,7 +252,7 @@ async function renderDashboard() {
   const k = await ambilKarakter();
   const xp = await totalXP();
 
-  el.appendChild(kartuKarakter(k, xp));
+  el.appendChild(kartuHero(k, xp));
   el.appendChild(await panelSkillGate(k, xp));
   el.appendChild(await heatmapKonsistensi(84));
   el.appendChild(await trenMingguan(8));
@@ -263,4 +263,5 @@ async function renderDashboard() {
   if (typeof panelCorruption === "function") el.appendChild(await panelCorruption());
   if (typeof panelJapanFund === "function") el.appendChild(await panelJapanFund());
   if (typeof panelBahasa === "function") el.appendChild(await panelBahasa());
+  if (typeof renderSidebarKarakter === "function") renderSidebarKarakter();
 }

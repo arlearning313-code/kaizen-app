@@ -23,6 +23,7 @@
     <script src="trackers.js"></script>
     <script src="settings.js"></script>
     <script src="navigasi.js"></script>
+    <script src="karakter-ui.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -31,6 +32,8 @@
         <span class="merek-kanji">改善</span>
         <span class="merek-nama">Kaizen</span>
       </div>
+
+      <div id="sidebar-karakter" class="side-kar"></div>
 
       <nav class="sidebar-nav">
         <span class="nav-sorot" aria-hidden="true"></span>
@@ -98,7 +101,8 @@
         .then(() => renderDashboard())
         .then(() => renderManajer())
         .then(() => renderQuestMobile())
-        .then(() => renderManajerQuest());
+        .then(() => renderManajerQuest())
+        .then(() => renderSidebarKarakter());
       pasangTombolSync();
       pasangTombolJurnal();
       pasangTombolSetelan();

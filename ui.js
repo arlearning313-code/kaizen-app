@@ -56,6 +56,7 @@ async function toggleHabit(habit, tanggal) {
     await tampilkanChecklist();                    // gambar ulang layar
     await cekAchievements();                        // buka trophy kalau ada yang terpenuhi
     if (typeof cekNaikLevel === "function") await cekNaikLevel(); // naik level kalau XP cukup
+    if (typeof renderSidebarKarakter === "function") await renderSidebarKarakter();
 }
 
 // Gambar seluruh checklist hari ini.
