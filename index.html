@@ -14,6 +14,7 @@
     <script src="sync.js"></script>
     <script src="character.js"></script>
     <script src="achievements.js"></script>
+    <script src="journal.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -24,6 +25,12 @@
       </header>
       <ul id="daftar-habit" class="daftar"></ul>
       <p id="ringkasan" class="ringkasan"></p>
+
+      <div class="jurnal-aksi">
+        <button id="btn-relapse" class="tombol">⚠ Catat relapse</button>
+        <button id="btn-pemicu" class="tombol">📝 Catat pemicu</button>
+        <button id="btn-surat" class="tombol">✉ Surat masa depan</button>
+      </div>
 
       <footer class="app-footer">
         <button id="btn-ekspor" class="tombol">⬇ Ekspor data</button>
@@ -45,8 +52,10 @@
       seedJikaKosong()
         .then(() => ambilKarakter())
         .then(() => tampilkanChecklist())
-        .then(() => cekAchievements());
+        .then(() => cekAchievements())
+        .then(() => cekSuratMasaDepan());
       pasangTombolSync();
+      pasangTombolJurnal();
     </script>
   </body>
 </html>
