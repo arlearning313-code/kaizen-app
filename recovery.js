@@ -12,13 +12,26 @@ function tanggalKemarin() {
   return formatTanggal(d);
 }
 
+// Selisih hari antara dua tanggal "YYYY-MM-DD".
+function selisihHari(tglAwal, tglAkhir) {
+  const a = new Date(tglAwal + "T00:00:00");
+  const b = new Date(tglAkhir + "T00:00:00");
+  return Math.round((b - a) / 86400000);
+}
+
 // Rata-rata keberhasilan (0–1) selama N hari terakhir (abaikan hari tanpa kewajiban).
 async function keberhasilanKeseluruhan(jumlahHari) {
+  const logs = await ambilSemua("logs");
+  if (logs.length === 0) return null;
+  const pertama = logs.map((l) => l.date).sort()[0];   // tanggal log paling awal
+
   let total = 0, hitung = 0;
   for (let i = 0; i < jumlahHari; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const skor = await skorHari(formatTanggal(d));
+    const tgl = formatTanggal(d);
+    if (tgl < pertama) continue;                        // abaikan hari sebelum kamu mulai
+    const skor = await skorHari(tgl);
     if (skor !== null) { total += skor; hitung++; }
   }
   return hitung === 0 ? null : (total / hitung) / 100;
@@ -45,6 +58,12 @@ async function cekRecovery() {
   const k = await ambilKarakter();
 
   if (!k.recovery) {
+    // Jangan menilai "slump" sebelum ada cukup riwayat (min. 14 hari sejak log pertama).
+    const logs = await ambilSemua("logs");
+    if (logs.length === 0) return false;
+    const pertama = logs.map((l) => l.date).sort()[0];
+    if (selisihHari(pertama, formatTanggal(new Date())) < 14) return false;
+
     const rate14 = await keberhasilanKeseluruhan(14);
     if (rate14 !== null && rate14 < 0.30) {
       k.recovery = true;
