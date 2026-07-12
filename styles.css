@@ -447,3 +447,68 @@ body {
   0%, 100% { opacity: .55; transform: scale(.98); }
   50%      { opacity: .90; transform: scale(1.06); }
 }
+
+/* ===================================================================== */
+/*  STAGE 4 — FX & mikro-interaksi (desktop-only).                        */
+/* ===================================================================== */
+@media (min-width: 900px) {
+
+  /* Burst partikel */
+  .fx-burst { position: fixed; z-index: 80; pointer-events: none; width: 0; height: 0; }
+  .fx-burst span {
+    position: absolute; left: 0; top: 0; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--warna, #e8b04b); box-shadow: 0 0 8px var(--warna, #e8b04b);
+    animation: fx-terbang .8s ease-out forwards;
+  }
+
+  /* "+XP" melayang */
+  .fx-xp {
+    position: fixed; z-index: 81; pointer-events: none;
+    font-family: "Fraunces", serif; font-weight: 600; font-size: 20px;
+    text-shadow: 0 2px 10px rgba(0,0,0,.55);
+    transform: translate(-50%, -50%); animation: fx-naik 1.05s ease-out forwards;
+  }
+
+  /* Overlay LEVEL UP */
+  .fx-levelup {
+    position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 45%, rgba(0,0,0,.42), rgba(0,0,0,.74));
+  }
+  .fx-levelup.keluar { opacity: 0; transition: opacity .5s ease; }
+  .fx-lu-flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--c1) 55%, transparent), transparent 55%);
+    animation: fx-flash .7s ease-out;
+  }
+  .fx-lu-kartu { position: relative; text-align: center; animation: fx-lu-masuk .6s cubic-bezier(.2,.9,.2,1) both; }
+  .fx-lu-kanji { font-family: "Yu Mincho", "Noto Serif JP", serif; font-size: 96px; color: #fff; line-height: 1; text-shadow: 0 0 30px var(--c1); }
+  .fx-lu-label { font-family: "Fraunces", serif; letter-spacing: .4em; color: var(--c1); font-size: 16px; margin-top: 10px; }
+  .fx-lu-level { font-family: "Fraunces", serif; font-size: 44px; color: #fff; font-weight: 600; margin-top: 2px; }
+  .fx-lu-stage { color: var(--ink); font-size: 15px; margin-top: 4px; opacity: .85; }
+
+  /* --- Polish hover --- */
+  .dash-card, .manajer-baris, .quest-row { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+  .dash-card:hover, .manajer-baris:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .baris { transition: transform .12s ease, border-color .15s ease, box-shadow .2s ease; }
+  .baris:hover { box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+  .baris:hover .kotak { box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 70%, transparent); }
+  .tombol { transition: border-color .15s, color .15s, transform .12s, box-shadow .2s; }
+  .tombol:hover { transform: translateY(-1px); }
+  .tombol-utama:hover { box-shadow: 0 6px 18px color-mix(in srgb, var(--gold) 45%, transparent); }
+}
+
+@keyframes fx-terbang {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(.2); opacity: 0; }
+}
+@keyframes fx-naik {
+  0%   { transform: translate(-50%, -50%) scale(.7); opacity: 0; }
+  20%  { transform: translate(-50%, -90%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -190%) scale(1); opacity: 0; }
+}
+@keyframes fx-flash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fx-lu-masuk { 0% { opacity: 0; transform: scale(.7) translateY(10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }

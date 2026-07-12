@@ -39,6 +39,7 @@ async function habitHariIni(tanggal) {
 async function toggleHabit(habit, tanggal) {
   const id = `${tanggal}_${habit.id}`;          // 1 catatan per habit per hari
   const logLama = await ambil("logs", id);
+  const menjadiSelesai = !(logLama && logLama.status === "done");
 
   if (logLama && logLama.status === "done") {
     await hapus("logs", id);                     // batal centang
@@ -53,6 +54,7 @@ async function toggleHabit(habit, tanggal) {
       diubah: Date.now(),                        // untuk last-write-wins (Modul 11)
     });
   }
+    if (menjadiSelesai && typeof fxHabitSelesai === "function") fxHabitSelesai(habit);
     await tampilkanChecklist();                    // gambar ulang layar
     await cekAchievements();                        // buka trophy kalau ada yang terpenuhi
     if (typeof cekNaikLevel === "function") await cekNaikLevel(); // naik level kalau XP cukup

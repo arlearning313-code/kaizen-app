@@ -90,7 +90,8 @@ async function cekNaikLevel() {
   }
   if (naik > 0) {
     const st = typeof stageDari === "function" ? stageDari(levelBaru) : null;
-    alert(`⬆️ Naik ke Level ${levelBaru}${st ? " · " + st.nama : ""}!\n\nTerus melangkah. 📈`);
+    if (typeof rayakanLevelUp === "function") rayakanLevelUp(levelBaru, st);
+    else alert(`⬆️ Naik ke Level ${levelBaru}${st ? " · " + st.nama : ""}!\n\nTerus melangkah. 📈`);
     if (typeof renderDashboard === "function") await renderDashboard();
     if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
     if (typeof renderQuestMobile === "function") await renderQuestMobile();
