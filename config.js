@@ -69,6 +69,40 @@ const KONFIG = {
       tier: "A", rarity: "rare", xp: 15, frekuensi: { tipe: "mingguan", hari: [1, 4] },
       kaizen: null, aktif: true },
   ],
+
+  // ── Trophy: pasangan "kondisi + hadiah XP" (Modul 9) ────────────
+  // kondisi() mengembalikan true kalau trophy layak dibuka.
+  trophies: [
+    {
+      id: "T-langkah-pertama",
+      nama: "Langkah Pertama",
+      deskripsi: "Menyelesaikan habit pertamamu.",
+      hadiah: 20,
+      kondisi: async () => {
+        const logs = await ambilSemua("logs");
+        return logs.some((l) => l.status === "done");
+      },
+    },
+    {
+      id: "T-hari-baik-pertama",
+      nama: "Hari Baik Pertama",
+      deskripsi: "Mencapai hari dengan skor 70% atau lebih.",
+      hadiah: 30,
+      kondisi: async () => {
+        for (const t of await hariHariUnik()) {
+          if (hariBaik(await skorHari(t))) return true;
+        }
+        return false;
+      },
+    },
+    {
+      id: "T-tujuh-hari",
+      nama: "Tujuh Hari",
+      deskripsi: "Mencatat di 7 hari yang berbeda.",
+      hadiah: 50,
+      kondisi: async () => (await hariHariUnik()).length >= 7,
+    },
+  ],
 };
 
 // ── Seeding: isi store "habits" HANYA jika masih kosong ────────────

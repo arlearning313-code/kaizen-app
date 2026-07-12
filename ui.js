@@ -45,7 +45,8 @@ async function toggleHabit(habit, tanggal) {
       diubah: Date.now(),                        // untuk last-write-wins (Modul 11)
     });
   }
-  await tampilkanChecklist();                    // gambar ulang layar
+    await tampilkanChecklist();                    // gambar ulang layar
+    await cekAchievements();                        // buka trophy kalau ada yang terpenuhi
 }
 
 // Gambar seluruh checklist hari ini.
