@@ -1,5 +1,5 @@
-const NAMA_CACHE = "kaizen-v10"
-const FILE_INTI = ["./", "./index.html", "./styles.css", "./db.js", "./config.js", "./ui.js", "./skor.js", "./sync.js", "./character.js", "./achievements.js", "./journal.js", "./kaizen.js", "./manifest.json", "./kaizen-logo-icon-192.png", "./kaizen-logo-icon-512.png"]
+const NAMA_CACHE = "kaizen-v11"
+const FILE_INTI = ["./", "./index.html", "./styles.css", "./db.js", "./config.js", "./ui.js", "./skor.js", "./sync.js", "./character.js", "./achievements.js", "./journal.js", "./kaizen.js", "./recovery.js", "./manifest.json", "./kaizen-logo-icon-192.png", "./kaizen-logo-icon-512.png"]
 
 self.addEventListener("install", (event) => {
     event.waitUntil(

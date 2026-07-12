@@ -16,6 +16,7 @@
     <script src="achievements.js"></script>
     <script src="journal.js"></script>
     <script src="kaizen.js"></script>
+    <script src="recovery.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -52,6 +53,7 @@
       // Seed dulu (kalau perlu), baru gambar checklist.
       seedJikaKosong()
         .then(() => ambilKarakter())
+        .then(() => cekRecovery())
         .then(() => tampilkanChecklist())
         .then(() => cekAchievements())
         .then(() => cekSuratMasaDepan())

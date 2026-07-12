@@ -17,7 +17,7 @@ async function habitHariIni(tanggal) {
   const hari = d.getDay();   // 0=Minggu, 1=Senin, ... 6=Sabtu
   const tgl = d.getDate();   // 1..31
 
-  return semua.filter((h) => {
+  let hasil = semua.filter((h) => {
     if (!h.aktif) return false;
     const f = h.frekuensi;
     if (f.tipe === "harian") return true;
@@ -25,6 +25,13 @@ async function habitHariIni(tanggal) {
     if (f.tipe === "bulanan") return f.tanggal === tgl;
     return false;
   });
+
+  // Recovery Mode: sisakan hanya 3 habit Tier S termudah (XP terkecil).
+  const k = await ambil("character", "me");
+  if (k && k.recovery) {
+    hasil = hasil.filter((h) => h.tier === "S").sort((a, b) => a.xp - b.xp).slice(0, 3);
+  }
+  return hasil;
 }
 
 // Centang / batal-centang satu habit untuk satu tanggal.
@@ -68,8 +75,11 @@ async function tampilkanChecklist() {
   const daftar = document.getElementById("daftar-habit");
   daftar.innerHTML = "";
 
+  const terlewat = await habitTerlewatKemarin();
+
   for (const h of habits) {
     const sudah = selesai.has(h.id);
+    const urgent = terlewat.has(h.id) && !sudah;
 
     const li = document.createElement("li");
     li.className = "baris" + (sudah ? " selesai" : "");
@@ -82,6 +92,13 @@ async function tampilkanChecklist() {
     nama.textContent = h.kaizen ? `${h.nama} · ${h.kaizen.target} ${h.kaizen.satuan}` : h.nama;
 
     li.append(kotak, nama);
+    if (urgent) {
+      li.classList.add("urgent");
+      const badge = document.createElement("span");
+      badge.className = "badge-urgent";
+      badge.textContent = "jangan 2×";
+      li.appendChild(badge);
+    }
     li.addEventListener("click", () => toggleHabit(h, tanggal));
     daftar.appendChild(li);
   }
