@@ -5,7 +5,8 @@ const HARI_BAIK = 70; // ambang "hari baik" dalam persen
 // Hitung skor satu hari. Kembalikan null bila TAK ADA habit jatuh tempo —
 // hari tanpa kewajiban tidak boleh dihukum jadi 0%.
 async function skorHari(tanggal) {
-  const jatuhTempo = await habitHariIni(tanggal);   // dari Modul 3 (ui.js)
+  const semua = await habitHariIni(tanggal);        // dari Modul 3 (ui.js)
+  const jatuhTempo = semua.filter((h) => h.frekuensi?.tipe !== "opsional"); // opsional = bonus, tak dihitung
   if (jatuhTempo.length === 0) return null;          // "kosong", bukan 0
 
   const logs = await ambilPerTanggal(tanggal);

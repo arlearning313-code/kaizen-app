@@ -21,6 +21,7 @@ async function habitHariIni(tanggal) {
     if (!h.aktif) return false;
     const f = h.frekuensi;
     if (f.tipe === "harian") return true;
+    if (f.tipe === "opsional") return true;   // muncul tiap hari, tapi tak dihitung ke skor
     if (f.tipe === "mingguan") return f.hari.includes(hari);
     if (f.tipe === "bulanan") return f.tanggal === tgl;
     return false;
@@ -115,8 +116,9 @@ async function tampilkanChecklist() {
   if (skor === null) {
     ringkasan.textContent = "Tidak ada habit jatuh tempo hari ini. Istirahat yang cukup. 🌙";
   } else {
-    const jumlahSelesai = habits.filter((h) => selesai.has(h.id)).length;
+    const terjadwal = habits.filter((h) => h.frekuensi.tipe !== "opsional");
+    const jumlahSelesai = terjadwal.filter((h) => selesai.has(h.id)).length;
     const labelBaik = hariBaik(skor) ? " · hari baik ✨" : "";
-    ringkasan.textContent = `${skor}% — ${jumlahSelesai}/${habits.length} selesai${labelBaik}`;
+    ringkasan.textContent = `${skor}% — ${jumlahSelesai}/${terjadwal.length} selesai${labelBaik}`;
   }
 }
