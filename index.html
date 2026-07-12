@@ -11,6 +11,7 @@
     <script src="config.js"></script>
     <script src="ui.js"></script>
     <script src="skor.js"></script>
+    <script src="sync.js"></script>
   </head>
   <body>
     <main class="app">
@@ -20,6 +21,12 @@
       </header>
       <ul id="daftar-habit" class="daftar"></ul>
       <p id="ringkasan" class="ringkasan"></p>
+
+      <footer class="app-footer">
+        <button id="btn-ekspor" class="tombol">⬇ Ekspor data</button>
+        <button id="btn-impor" class="tombol">⬆ Impor data</button>
+        <input id="file-impor" type="file" accept="application/json" hidden />
+      </footer>
     </main>
 
     <script>
@@ -33,6 +40,7 @@
       }
       // Seed dulu (kalau perlu), baru gambar checklist.
       seedJikaKosong().then(() => tampilkanChecklist());
+      pasangTombolSync();
     </script>
   </body>
 </html>

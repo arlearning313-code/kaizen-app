@@ -44,3 +44,12 @@ body {
 .baris.selesai .nama { color: var(--muted); text-decoration: line-through; }
 
 .ringkasan { text-align: center; margin-top: 26px; color: var(--gold); font-size: 15px; font-weight: 500; }
+
+.app-footer { display: flex; gap: 10px; justify-content: center; margin-top: 34px; }
+.tombol {
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 14px; font-size: 13px; cursor: pointer;
+  font-family: inherit; transition: border-color .15s, color .15s;
+}
+.tombol:hover { border-color: var(--gold); color: var(--gold); }
