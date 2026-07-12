@@ -1,4 +1,4 @@
-const NAMA_CACHE = "kaizen-v19"
+const NAMA_CACHE = "kaizen-v20"
 const FILE_INTI = ["./", "./index.html", "./styles.css", "./db.js", "./config.js", "./ui.js", "./skor.js", "./sync.js", "./character.js", "./achievements.js", "./journal.js", "./kaizen.js", "./recovery.js", "./dashboard.js", "./settings.js", "./manager.js", "./quest.js", "./trackers.js", "./manifest.json", "./kaizen-logo-icon-192.png", "./kaizen-logo-icon-512.png"]
 
 self.addEventListener("install", (event) => {

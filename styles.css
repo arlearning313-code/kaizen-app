@@ -196,6 +196,7 @@ body {
 .quest-status.ok { font-size: 16px; }
 
 /* Main Quest — mobile */
+@media (max-width: 899px) { .quest-mobile { display: none; } }
 .quest-mobile-judul { font-size: 18px; color: #fff; margin: 28px 0 12px; }
 .baris.terkunci { opacity: .5; cursor: default; }
 .baris.terkunci:hover { border-color: var(--line); }
