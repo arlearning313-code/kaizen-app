@@ -194,3 +194,10 @@ body {
 .quest-aksi { flex: 0 0 auto; }
 .quest-status.lock { color: var(--muted); font-size: 13px; }
 .quest-status.ok { font-size: 16px; }
+
+/* Main Quest — mobile */
+.quest-mobile-judul { font-size: 18px; color: #fff; margin: 28px 0 12px; }
+.baris.terkunci { opacity: .5; cursor: default; }
+.baris.terkunci:hover { border-color: var(--line); }
+.badge-lock { margin-left: auto; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+.badge-xp { margin-left: auto; font-size: 11px; color: var(--gold); white-space: nowrap; }

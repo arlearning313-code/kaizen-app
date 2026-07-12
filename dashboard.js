@@ -257,5 +257,4 @@ async function renderDashboard() {
   el.appendChild(await trenMingguan(8));
   el.appendChild(await panelPemicu());
   el.appendChild(await panelTrophy());
-  el.appendChild(await panelQuest(k));
 }

@@ -19,6 +19,7 @@
     <script src="recovery.js"></script>
     <script src="dashboard.js"></script>
     <script src="manager.js"></script>
+    <script src="quest.js"></script>
     <script src="settings.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
@@ -30,6 +31,7 @@
       </header>
       <ul id="daftar-habit" class="daftar"></ul>
       <p id="ringkasan" class="ringkasan"></p>
+      <section id="quest-mobile" class="quest-mobile"></section>
 
       <div class="jurnal-aksi">
         <button id="btn-relapse" class="tombol">⚠ Catat relapse</button>
@@ -47,6 +49,7 @@
 
     <section id="dashboard" class="dashboard"></section>
     <section id="manajer" class="manajer"></section>
+    <section id="manajer-quest" class="manajer"></section>
 
     <script>
       if ("serviceWorker" in navigator) {
@@ -61,6 +64,7 @@
       // Seed dulu (kalau perlu), baru gambar checklist.
       seedJikaKosong()
         .then(() => migrasiHabits())
+        .then(() => seedQuestsJikaKosong())
         .then(() => ambilKarakter())
         .then(() => cekRecovery())
         .then(() => cekDelevel())
@@ -69,7 +73,9 @@
         .then(() => cekSuratMasaDepan())
         .then(() => tawarkanKaizen())
         .then(() => renderDashboard())
-        .then(() => renderManajer());
+        .then(() => renderManajer())
+        .then(() => renderQuestMobile())
+        .then(() => renderManajerQuest());
       pasangTombolSync();
       pasangTombolJurnal();
       pasangTombolSetelan();
