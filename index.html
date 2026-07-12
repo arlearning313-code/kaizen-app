@@ -12,6 +12,7 @@
     <script src="ui.js"></script>
     <script src="skor.js"></script>
     <script src="sync.js"></script>
+    <script src="character.js"></script>
   </head>
   <body>
     <main class="app">
@@ -39,7 +40,9 @@
         });
       }
       // Seed dulu (kalau perlu), baru gambar checklist.
-      seedJikaKosong().then(() => tampilkanChecklist());
+      seedJikaKosong()
+        .then(() => ambilKarakter())
+        .then(() => tampilkanChecklist());
       pasangTombolSync();
     </script>
   </body>
