@@ -17,6 +17,7 @@
     <script src="journal.js"></script>
     <script src="kaizen.js"></script>
     <script src="recovery.js"></script>
+    <script src="dashboard.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -41,6 +42,8 @@
       </footer>
     </main>
 
+    <section id="dashboard" class="dashboard"></section>
+
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -57,7 +60,8 @@
         .then(() => tampilkanChecklist())
         .then(() => cekAchievements())
         .then(() => cekSuratMasaDepan())
-        .then(() => tawarkanKaizen());
+        .then(() => tawarkanKaizen())
+        .then(() => renderDashboard());
       pasangTombolSync();
       pasangTombolJurnal();
     </script>
