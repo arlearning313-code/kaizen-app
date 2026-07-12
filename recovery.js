@@ -37,19 +37,15 @@ async function keberhasilanKeseluruhan(jumlahHari) {
   return hitung === 0 ? null : (total / hitung) / 100;
 }
 
-// Turunkan semua habit ber-Kaizen ke level 1 (target awal dari config).
+// Turunkan semua habit ber-tangga kembali ke level pertama.
 async function turunkanSemuaKeLevel1() {
   const habits = await ambilSemua("habits");
   for (const h of habits) {
-    if (!h.kaizen) continue;
-    const asli = KONFIG.habits.find((c) => c.id === h.id);
-    if (asli && asli.kaizen) {
-      h.kaizen.level = 1;
-      h.kaizen.target = asli.kaizen.target;
-      h.kaizen.mulaiLevelIni = tanggalHariIni();
-      h.diubah = Date.now();
-      await simpan("habits", h);
-    }
+    if (!Array.isArray(h.levels) || h.levels.length <= 1) continue;
+    h.levelSekarang = h.levels[0].level; // kembali ke level pertama
+    h.mulaiLevelIni = tanggalHariIni();
+    h.diubah = Date.now();
+    await simpan("habits", h);
   }
 }
 
