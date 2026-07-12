@@ -44,7 +44,7 @@ function escAttr(s) {
     .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// ── Daftar semua habit (aktif & non-aktif) + tombol tambah ─────────────
+// ── Daftar habit dikelompokkan: aktif (sedang dikerjakan) vs nonaktif ──
 async function renderManajer() {
   const el = document.getElementById("manajer");
   if (!el) return;
@@ -63,44 +63,93 @@ async function renderManajer() {
   el.appendChild(head);
 
   const habits = (await ambilSemua("habits")).sort((a, b) => (a.id > b.id ? 1 : -1));
+  const aktif = habits.filter((h) => h.aktif);
+  const nonaktif = habits.filter((h) => !h.aktif);
+
+  el.appendChild(grupHabit("Sedang dikerjakan", aktif, "Belum ada habit aktif — nyalakan sakelar di bawah."));
+  el.appendChild(grupHabit("Nonaktif (arsip)", nonaktif, "Semua habit sedang aktif. 🌱"));
+}
+
+// Satu grup (judul + hitungan + daftar baris, atau pesan kosong).
+function grupHabit(judul, daftarHabit, pesanKosong) {
+  const wrap = document.createElement("div");
+
+  const jud = document.createElement("div");
+  jud.className = "manajer-grup-judul";
+  jud.innerHTML = `${judul} · <span class="jml">${daftarHabit.length} habit</span>`;
+  wrap.appendChild(jud);
+
+  if (daftarHabit.length === 0) {
+    const kosong = document.createElement("p");
+    kosong.className = "manajer-kosong";
+    kosong.textContent = pesanKosong;
+    wrap.appendChild(kosong);
+    return wrap;
+  }
+
   const list = document.createElement("div");
   list.className = "manajer-list";
+  for (const h of daftarHabit) list.appendChild(barisManajer(h));
+  wrap.appendChild(list);
+  return wrap;
+}
 
-  for (const h of habits) {
-    const lv = levelAktif(h);
-    const baris = document.createElement("div");
-    baris.className = "manajer-baris" + (h.aktif ? "" : " nonaktif");
+// Satu baris habit: [sakelar] [info] [Edit] [Hapus].
+function barisManajer(h) {
+  const lv = levelAktif(h);
+  const baris = document.createElement("div");
+  baris.className = "manajer-baris" + (h.aktif ? "" : " nonaktif");
 
-    const info = document.createElement("div");
-    info.className = "manajer-info";
-    const nm = document.createElement("div");
-    nm.className = "manajer-nama";
-    nm.textContent = `${h.id} · ${h.nama}`;
-    const meta = document.createElement("div");
-    meta.className = "manajer-meta";
-    const tangga = Array.isArray(h.levels) ? `${h.levels.length} level` : "—";
-    meta.textContent =
-      `Tier ${h.tier} · ${h.xp} XP · ${h.frekuensi?.tipe || "?"} · ${tangga}` +
-      (lv && lv.target ? ` · sekarang: ${lv.target}` : "") +
-      (h.aktif ? "" : " · NONAKTIF");
-    info.append(nm, meta);
+  const sw = document.createElement("label");
+  sw.className = "switch";
+  sw.title = h.aktif ? "Sedang dikerjakan — klik untuk nonaktifkan" : "Nonaktif — klik untuk mulai kerjakan";
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.checked = !!h.aktif;
+  cb.addEventListener("change", () => toggleAktif(h.id));
+  const slider = document.createElement("span");
+  slider.className = "slider";
+  sw.append(cb, slider);
 
-    const aksi = document.createElement("div");
-    aksi.className = "manajer-aksi";
-    const btnEdit = document.createElement("button");
-    btnEdit.className = "tombol";
-    btnEdit.textContent = "Edit";
-    btnEdit.addEventListener("click", () => bukaEditorHabit(h));
-    const btnHapus = document.createElement("button");
-    btnHapus.className = "tombol";
-    btnHapus.textContent = "Hapus";
-    btnHapus.addEventListener("click", () => hapusHabit(h.id));
-    aksi.append(btnEdit, btnHapus);
+  const info = document.createElement("div");
+  info.className = "manajer-info";
+  const nm = document.createElement("div");
+  nm.className = "manajer-nama";
+  nm.textContent = `${h.id} · ${h.nama}`;
+  const meta = document.createElement("div");
+  meta.className = "manajer-meta";
+  const tangga = Array.isArray(h.levels) ? `${h.levels.length} level` : "—";
+  meta.textContent =
+    `Tier ${h.tier} · ${h.xp} XP · ${h.frekuensi?.tipe || "?"} · ${tangga}` +
+    (lv && lv.target ? ` · sekarang: ${lv.target}` : "");
+  info.append(nm, meta);
 
-    baris.append(info, aksi);
-    list.appendChild(baris);
-  }
-  el.appendChild(list);
+  const aksi = document.createElement("div");
+  aksi.className = "manajer-aksi";
+  const btnEdit = document.createElement("button");
+  btnEdit.className = "tombol";
+  btnEdit.textContent = "Edit";
+  btnEdit.addEventListener("click", () => bukaEditorHabit(h));
+  const btnHapus = document.createElement("button");
+  btnHapus.className = "tombol";
+  btnHapus.textContent = "Hapus";
+  btnHapus.addEventListener("click", () => hapusHabit(h.id));
+  aksi.append(btnEdit, btnHapus);
+
+  baris.append(sw, info, aksi);
+  return baris;
+}
+
+// Nyalakan/matikan satu habit langsung dari daftar.
+async function toggleAktif(id) {
+  const h = await ambil("habits", id);
+  if (!h) return;
+  h.aktif = !h.aktif;
+  h.diubah = Date.now();
+  await simpan("habits", h);
+  await renderManajer();
+  if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
+  if (typeof renderDashboard === "function") await renderDashboard();
 }
 
 // ── Editor modal: buat baru (habit=null) atau edit ─────────────────────
