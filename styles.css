@@ -182,3 +182,15 @@ body {
 .switch input:checked + .slider::before { transform: translateX(18px); }
 
 .dash-stage { font-size: 13px; color: #e79fb0; letter-spacing: .02em; margin: 2px 0; }
+
+/* Main Quest (Modul 18) */
+.quest-list { display: flex; flex-direction: column; gap: 8px; }
+.quest-row { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+.quest-info { min-width: 0; }
+.quest-nama { font-size: 14px; color: var(--ink); }
+.quest-nama.selesai { color: var(--gold); }
+.quest-ident { font-size: 12px; color: var(--muted); margin-top: 2px; font-style: italic; }
+.quest-aksi { flex: 0 0 auto; }
+.quest-status.lock { color: var(--muted); font-size: 13px; }
+.quest-status.ok { font-size: 16px; }

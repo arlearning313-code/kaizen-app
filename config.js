@@ -176,36 +176,71 @@ const KONFIG = {
 
   // ── Trophy: pasangan "kondisi + hadiah XP" (Modul 9) ────────────
   // kondisi() mengembalikan true kalau trophy layak dibuka.
+  // ── 22 Trophy (Modul 18) — kondisi() true = layak dibuka ──────
   trophies: [
-    {
-      id: "T-langkah-pertama",
-      nama: "Langkah Pertama",
-      deskripsi: "Menyelesaikan habit pertamamu.",
-      hadiah: 20,
-      kondisi: async () => {
-        const logs = await ambilSemua("logs");
-        return logs.some((l) => l.status === "done");
-      },
-    },
-    {
-      id: "T-hari-baik-pertama",
-      nama: "Hari Baik Pertama",
-      deskripsi: "Mencapai hari dengan skor 70% atau lebih.",
-      hadiah: 30,
-      kondisi: async () => {
-        for (const t of await hariHariUnik()) {
-          if (hariBaik(await skorHari(t))) return true;
-        }
-        return false;
-      },
-    },
-    {
-      id: "T-tujuh-hari",
-      nama: "Tujuh Hari",
-      deskripsi: "Mencatat di 7 hari yang berbeda.",
-      hadiah: 50,
-      kondisi: async () => (await hariHariUnik()).length >= 7,
-    },
+    { id:"T-langkah-pertama", nama:"Langkah Pertama", deskripsi:"Mencapai Level 2.", hadiah:50,
+      kondisi: async () => (await ambilKarakter()).level >= 2 },
+    { id:"T-tujuh-hari", nama:"Tujuh Hari Pertama", deskripsi:"Sistem berjalan 7 hari berturut.", hadiah:75,
+      kondisi: async () => (await streakHariAktifMaks()) >= 7 },
+    { id:"T-bersih-1", nama:"Hari Pertama Bersih", deskripsi:"1 hari bebas Corruption pertama.", hadiah:30,
+      kondisi: async () => (await streakBebasCorruptionMaks()) >= 1 },
+    { id:"T-bersih-3", nama:"Tiga Hari Bebas", deskripsi:"3 hari berturut bebas Corruption.", hadiah:60,
+      kondisi: async () => (await streakBebasCorruptionMaks()) >= 3 },
+    { id:"T-bersih-7", nama:"Satu Minggu Bebas", deskripsi:"7 hari berturut bebas Corruption.", hadiah:100,
+      kondisi: async () => (await streakBebasCorruptionMaks()) >= 7 },
+    { id:"T-bersih-14", nama:"Dua Minggu Bebas", deskripsi:"14 hari berturut bebas Corruption.", hadiah:150,
+      kondisi: async () => (await streakBebasCorruptionMaks()) >= 14 },
+    { id:"T-bersih-30", nama:"Satu Bulan Bebas", deskripsi:"30 hari berturut bebas Corruption.", hadiah:250,
+      kondisi: async () => (await streakBebasCorruptionMaks()) >= 30 },
+    { id:"T-deepwork-1", nama:"Deep Work Dimulai", deskripsi:"Sesi Deep Work pertama selesai.", hadiah:40,
+      kondisi: async () => adaHabitSelesai("H-17") },
+    { id:"T-jepang-1", nama:"Hiragana Dimulai", deskripsi:"Belajar Jepang pertama dicatat.", hadiah:40,
+      kondisi: async () => adaHabitSelesai("H-20") },
+    { id:"T-habit-stack", nama:"Habit Stack Aktif", deskripsi:"Push Up + Plank + Hand Grip dalam 1 hari.", hadiah:50,
+      kondisi: async () => habitStackSehari(["H-28","H-29","H-30"]) },
+    { id:"T-debrief-1", nama:"Failure Debrief Pertama", deskripsi:"Debrief pertama tercatat.", hadiah:60,
+      kondisi: async () => adaJurnalTipe("debrief") },
+    { id:"T-level-7", nama:"Satu Bulan Bertahan", deskripsi:"Mencapai Level 7.", hadiah:100,
+      kondisi: async () => (await ambilKarakter()).level >= 7 },
+    { id:"T-stage-2", nama:"Masuk Stage 2", deskripsi:"Mencapai Level 8.", hadiah:150,
+      kondisi: async () => (await ambilKarakter()).level >= 8 },
+    { id:"T-level-10", nama:"Tiga Bulan Legend", deskripsi:"Mencapai Level 10.", hadiah:200,
+      kondisi: async () => (await ambilKarakter()).level >= 10 },
+    { id:"T-koneksi-1", nama:"Koneksi Pertama", deskripsi:"Satu Koneksi Aman pertama dicatat.", hadiah:100,
+      kondisi: async () => adaHabitSelesai("H-14") },
+    { id:"T-level-15", nama:"Stabilitas Pertama", deskripsi:"Mencapai Level 15.", hadiah:300,
+      kondisi: async () => (await ambilKarakter()).level >= 15 },
+    { id:"T-python", nama:"Python Selesai", deskripsi:"Skill Gate L16 terverifikasi.", hadiah:400,
+      kondisi: async () => gateTerverifikasi(16) },
+    { id:"T-tabungan-1", nama:"Tabungan Pertama", deskripsi:"Financial snapshot pertama tercatat.", hadiah:75,
+      kondisi: async () => adaFinansial() },
+    { id:"T-level-20", nama:"Satu Tahun Tidak Menyerah", deskripsi:"Mencapai Level 20.", hadiah:500,
+      kondisi: async () => (await ambilKarakter()).level >= 20 },
+    { id:"T-freelance", nama:"Freelance Pertama Dicoba", deskripsi:"Skill Gate L22 terverifikasi.", hadiah:200,
+      kondisi: async () => gateTerverifikasi(22) },
+    { id:"T-n5", nama:"N5 Dikuasai", deskripsi:"Skill Gate L18 terverifikasi.", hadiah:200,
+      kondisi: async () => gateTerverifikasi(18) },
+    { id:"T-boss-1", nama:"Boss Pertama Dikalahkan", deskripsi:"Boss pertama dikalahkan.", hadiah:300,
+      kondisi: async () => false }, // menyusul — fitur Boss belum ada
+  ],
+
+  // ── 15 Main Quest (Modul 18) — konfirmasi manual, mirip Skill Gate ──
+  quests: [
+    { id:"Q-python-dasar",   nama:"Python Dasar Selesai (30%)",  unlock:1,  xp:200, identitas:"Saya seorang programmer" },
+    { id:"Q-portfolio-1",    nama:"Portfolio Pertama",           unlock:2,  xp:250, identitas:"Saya builder yang menunjukkan karyanya" },
+    { id:"Q-hiragana",       nama:"Belajar Hiragana",            unlock:3,  xp:300, identitas:"Saya pembelajar bahasa Jepang" },
+    { id:"Q-tabungan-25",    nama:"Tabungan 25 Juta",            unlock:3,  xp:350, identitas:"Saya disiplin menabung untuk impian" },
+    { id:"Q-komunitas",      nama:"Bergabung Komunitas Python",  unlock:4,  xp:200, identitas:"Saya bagian dari komunitas" },
+    { id:"Q-akun-investasi", nama:"Buka Akun Investasi",         unlock:4,  xp:300, identitas:"Saya investor masa depan saya" },
+    { id:"Q-python-inter",   nama:"Python Intermediate (60%)",   unlock:5,  xp:400, identitas:"Programmer yang terus naik kelas" },
+    { id:"Q-freelance-1",    nama:"Freelance Pertama",           unlock:5,  xp:500, identitas:"Profesional yang berani menawarkan nilainya" },
+    { id:"Q-n5",             nama:"N5 Lulus",                    unlock:5,  xp:400, identitas:"Pembelajar Jepang yang berprogres nyata" },
+    { id:"Q-portfolio-3",    nama:"Portfolio 3 Project",         unlock:6,  xp:400, identitas:"Engineer dengan rekam jejak terlihat" },
+    { id:"Q-tabungan-50",    nama:"Tabungan 50 Juta",            unlock:7,  xp:500, identitas:"Konsisten membangun masa depan" },
+    { id:"Q-python-expert",  nama:"Python Expert (90%)",         unlock:8,  xp:600, identitas:"Python developer yang matang" },
+    { id:"Q-ai-50",          nama:"AI Engineer 50%",             unlock:8,  xp:500, identitas:"AI Engineer yang sedang dibentuk" },
+    { id:"Q-n4",             nama:"N4 Lulus",                    unlock:10, xp:600, identitas:"Siap hidup berbahasa Jepang" },
+    { id:"Q-tabungan-100",   nama:"Tabungan 100 Juta",           unlock:12, xp:700, identitas:"Separuh jalan menuju Jepang" },
   ],
 };
 
