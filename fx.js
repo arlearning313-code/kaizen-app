@@ -40,7 +40,6 @@ function fxFloatXP(x, y, teks, warna) {
 
 // Dipanggil dari toggleHabit saat sebuah habit BARU jadi selesai.
 function fxHabitSelesai(habit) {
-  if (!fxDesktop()) return;                 // mobile: tanpa efek
   const warna = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e8b04b";
   const { x, y } = fxPointer;
   fxBurst(x, y, warna);
@@ -49,10 +48,6 @@ function fxHabitSelesai(habit) {
 
 // Perayaan level-up. Desktop = overlay; mobile = alert lama (teks identik).
 function rayakanLevelUp(levelBaru, st) {
-  if (!fxDesktop()) {
-    alert(`⬆️ Naik ke Level ${levelBaru}${st ? " · " + st.nama : ""}!\n\nTerus melangkah. 📈`);
-    return;
-  }
   const stg = (typeof stageVisual === "function" && st) ? stageVisual(st.no) : { kanji: "改", c1: "#e8b04b" };
   const ov = document.createElement("div");
   ov.className = "fx-levelup";

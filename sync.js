@@ -49,7 +49,7 @@ async function gabungStore(namaStore, records) {
   return { ditambah, diperbarui };
 }
 
-// ── IMPOR: baca teks file → gabungkan ke tiap store ────────────────
+// ── IMPOR: RESTORE (ganti total) atau GABUNG (last-write-wins) ──────
 async function impor(teks) {
   let data;
   try {
@@ -62,19 +62,36 @@ async function impor(teks) {
     alert("File ini sepertinya bukan backup Kaizen.");
     return;
   }
-  // (Kalau suatu saat format berubah, di sinilah tempat migrasi versi.)
 
   const stores = ["habits", "logs", "journal", "character", "achievements", "settings"];
-  let totalTambah = 0, totalPerbarui = 0;
 
+  const gantiTotal = confirm(
+    "Impor data backup — pilih mode:\n\n" +
+    "• OK = GANTI TOTAL (restore). Semua data di perangkat ini DIGANTI dengan isi file — " +
+    "mengembalikan level, XP, habit, log, jurnal, trophy, setelan. (Disarankan)\n\n" +
+    "• Batal = GABUNG. Gabungkan dengan data yang ada (per catatan, versi terbaru menang)."
+  );
+
+  if (gantiTotal) {
+    for (const s of stores) {
+      if (!Array.isArray(data[s])) continue;   // store tak ada di file → jangan disentuh
+      await kosongkan(s);                       // kosongkan dulu
+      for (const rec of data[s]) await simpan(s, rec);
+    }
+    alert("Restore selesai — semua data diganti dari backup (termasuk level). Memuat ulang…");
+    location.reload();
+    return;
+  }
+
+  // Mode GABUNG (last-write-wins per record)
+  let totalTambah = 0, totalPerbarui = 0;
   for (const s of stores) {
     const hasil = await gabungStore(s, data[s] || []);
     totalTambah += hasil.ditambah;
     totalPerbarui += hasil.diperbarui;
   }
-
-  alert(`Impor selesai.\nDitambah: ${totalTambah} record\nDiperbarui: ${totalPerbarui} record`);
-  if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
+  alert(`Impor (gabung) selesai.\nDitambah: ${totalTambah} record\nDiperbarui: ${totalPerbarui} record\n\nMemuat ulang…`);
+  location.reload();
 }
 
 // ── Pasang perilaku ke tombol di layar ─────────────────────────────

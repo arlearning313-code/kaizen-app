@@ -77,6 +77,10 @@ function hapus(namaStore, id) {
   return _transaksi(namaStore, "readwrite", (store) => store.delete(id));
 }
 
+function kosongkan(namaStore) {
+  return _transaksi(namaStore, "readwrite", (store) => store.clear());
+}
+
 // Ambil semua log pada 1 tanggal, lewat index "byDate".
 async function ambilPerTanggal(tanggal) {
   const db = await bukaDatabase();
