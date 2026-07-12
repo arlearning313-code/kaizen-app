@@ -89,8 +89,14 @@ async function tampilkanChecklist() {
 
     const nama = document.createElement("span");
     nama.className = "nama";
-    nama.textContent = h.kaizen ? `${h.nama} · ${h.kaizen.target} ${h.kaizen.satuan}` : h.nama;
-
+    const lvAktif = (typeof levelAktif === "function") ? levelAktif(h) : null;
+    if (lvAktif && lvAktif.target) {
+      nama.textContent = `${h.nama} · ${lvAktif.target}`;
+    } else if (h.kaizen) {
+      nama.textContent = `${h.nama} · ${h.kaizen.target} ${h.kaizen.satuan}`;
+    } else {
+      nama.textContent = h.nama;
+    }
     li.append(kotak, nama);
     if (urgent) {
       li.classList.add("urgent");

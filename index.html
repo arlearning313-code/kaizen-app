@@ -18,6 +18,7 @@
     <script src="kaizen.js"></script>
     <script src="recovery.js"></script>
     <script src="dashboard.js"></script>
+    <script src="manager.js"></script>
     <script src="settings.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
@@ -45,6 +46,7 @@
     </main>
 
     <section id="dashboard" class="dashboard"></section>
+    <section id="manajer" class="manajer"></section>
 
     <script>
       if ("serviceWorker" in navigator) {
@@ -58,13 +60,15 @@
       muatTema();
       // Seed dulu (kalau perlu), baru gambar checklist.
       seedJikaKosong()
+        .then(() => migrasiHabits())
         .then(() => ambilKarakter())
         .then(() => cekRecovery())
         .then(() => tampilkanChecklist())
         .then(() => cekAchievements())
         .then(() => cekSuratMasaDepan())
         .then(() => tawarkanKaizen())
-        .then(() => renderDashboard());
+        .then(() => renderDashboard())
+        .then(() => renderManajer());
       pasangTombolSync();
       pasangTombolJurnal();
       pasangTombolSetelan();
