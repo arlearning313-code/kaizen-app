@@ -20,6 +20,9 @@ const KONFIG = {
     5: { deskripsi: "Python: 100% selesai (bukan 'hampir')", dikonfirmasi: false },
   },
 
+  // ── Aturan mesin Kaizen (Modul 6) ──────────────────────────────
+  aturanKaizen: { hariMinimal: 21, rateMinimal: 0.8, faktor: 1.2 },
+
   // ── Daftar habit ───────────────────────────────────────────────
   // Skema tiap habit:
   //   id        : kode unik (pakai kode dokumenmu, mis. "H-05")

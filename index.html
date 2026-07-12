@@ -15,6 +15,7 @@
     <script src="character.js"></script>
     <script src="achievements.js"></script>
     <script src="journal.js"></script>
+    <script src="kaizen.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -53,7 +54,8 @@
         .then(() => ambilKarakter())
         .then(() => tampilkanChecklist())
         .then(() => cekAchievements())
-        .then(() => cekSuratMasaDepan());
+        .then(() => cekSuratMasaDepan())
+        .then(() => tawarkanKaizen());
       pasangTombolSync();
       pasangTombolJurnal();
     </script>

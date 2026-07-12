@@ -79,7 +79,7 @@ async function tampilkanChecklist() {
 
     const nama = document.createElement("span");
     nama.className = "nama";
-    nama.textContent = h.nama;
+    nama.textContent = h.kaizen ? `${h.nama} · ${h.kaizen.target} ${h.kaizen.satuan}` : h.nama;
 
     li.append(kotak, nama);
     li.addEventListener("click", () => toggleHabit(h, tanggal));
