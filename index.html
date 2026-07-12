@@ -22,9 +22,30 @@
     <script src="quest.js"></script>
     <script src="trackers.js"></script>
     <script src="settings.js"></script>
+    <script src="navigasi.js"></script>
     <link rel="icon" href="kaizen-logo-icon-192.png" />
   </head>
   <body>
+    <aside class="sidebar" aria-label="Navigasi">
+      <div class="sidebar-merek">
+        <span class="merek-kanji">改善</span>
+        <span class="merek-nama">Kaizen</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-sorot" aria-hidden="true"></span>
+        <button class="nav-item" data-target="beranda"><span class="nav-ikon">🏯</span><span class="nav-teks">Beranda</span></button>
+        <button class="nav-item" data-target="hari-ini"><span class="nav-ikon">🌅</span><span class="nav-teks">Hari Ini</span></button>
+        <button class="nav-item" data-target="habit"><span class="nav-ikon">⚔️</span><span class="nav-teks">Habit</span></button>
+        <button class="nav-item" data-target="quest"><span class="nav-ikon">🗺️</span><span class="nav-teks">Quest</span></button>
+      </nav>
+
+      <div class="sidebar-kaki">
+        <button class="kaki-item" id="nav-ekspor">⬇ Ekspor data</button>
+        <button class="kaki-item" id="nav-impor">⬆ Impor data</button>
+        <button class="kaki-item" id="nav-setelan">⚙ Setelan</button>
+      </div>
+    </aside>
     <main class="app">
       <header class="app-header">
         <h1>Kaizen</h1>
@@ -81,6 +102,7 @@
       pasangTombolSync();
       pasangTombolJurnal();
       pasangTombolSetelan();
+      pasangNavigasi();
     </script>
   </body>
 </html>
