@@ -15,13 +15,39 @@ async function ambilJadwal() {
 async function simpanJadwal(arr) {
   await simpan("settings", { key: "jadwal", value: arr, diubah: Date.now() });
 }
-async function tambahBlok(habitId, menit) {
+async function tambahBlok(habitId, menitUTC) {
   const arr = await ambilJadwal();
-  arr.push({ id: "blok-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), habitId, menit });
+  arr.push({ id: "blok-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), habitId, menitUTC });
   await simpanJadwal(arr);
 }
 async function hapusBlok(id) {
   await simpanJadwal((await ambilJadwal()).filter((b) => b.id !== id));
+}
+
+// ── Konversi timezone (Model B: blok = instan absolut) ──────────────────
+// Blok disimpan sebagai "menit UTC dalam sehari" (0..1439). Tiap device
+// menampilkannya sesuai timezone-nya (WIB/WITA/WIT). Indonesia tanpa DST.
+function offsetMenit() { return new Date().getTimezoneOffset(); }        // UTC − lokal (WIB = −420)
+function menitLokalBlok(b) {
+  if (typeof b.menitUTC === "number") return (b.menitUTC - offsetMenit() + 1440) % 1440;
+  if (typeof b.menit === "number") return b.menit;   // blok lama (wall-clock) → tampil apa adanya
+  return 0;
+}
+function lokalKeUTC(menitLokal) { return (menitLokal + offsetMenit() + 1440) % 1440; }
+
+// Migrasi sekali: blok lama (.menit) → .menitUTC memakai offset device ini.
+// Dipanggil di path DESKTOP saja (tempat Anda mengatur; device Anda WIB).
+async function migrasiJadwalUTC() {
+  const arr = await ambilJadwal();
+  let berubah = false;
+  for (const b of arr) {
+    if (typeof b.menitUTC !== "number" && typeof b.menit === "number") {
+      b.menitUTC = lokalKeUTC(b.menit);
+      delete b.menit;
+      berubah = true;
+    }
+  }
+  if (berubah) await simpanJadwal(arr);
 }
 
 // ── Util waktu ──────────────────────────────────────────────────────────
@@ -64,9 +90,10 @@ function svgJam(blok, map) {
   for (const b of blok) {
     const h = map[b.habitId];
     const warna = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
-    const [x, y] = titikJam(JAM_R, b.menit);
+    const mLokal = menitLokalBlok(b);                       // ← konversi ke waktu device
+    const [x, y] = titikJam(JAM_R, mLokal);
     dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
-      + `<title>${menitKeTeks(b.menit)} — ${escTeks(h ? h.nama : "(terhapus)")}</title></circle>`;
+      + `<title>${menitKeTeks(mLokal)} — ${escTeks(h ? h.nama : "(terhapus)")}</title></circle>`;
   }
 
   const now = menitSekarang();
@@ -91,7 +118,8 @@ async function renderJadwal() {
   if (!el) return;
   el.innerHTML = "";
 
-  const blok = (await ambilJadwal()).slice().sort((a, b) => a.menit - b.menit);
+  await migrasiJadwalUTC();                                   // ← migrasi blok lama sekali (di WIB)
+  const blok = (await ambilJadwal()).slice().sort((a, b) => menitLokalBlok(a) - menitLokalBlok(b));
   const map = await petaHabit();
 
   const head = document.createElement("div");
@@ -102,13 +130,11 @@ async function renderJadwal() {
   const grid = document.createElement("div");
   grid.className = "jadwal-grid";
 
-  // Kartu jam
   const jamCard = document.createElement("div");
   jamCard.className = "dash-card jadwal-jam-card";
   jamCard.innerHTML = svgJam(blok, map);
   grid.appendChild(jamCard);
 
-  // Sisi kanan: Rencana + form
   const side = document.createElement("div");
   side.className = "jadwal-side";
 
@@ -132,7 +158,7 @@ async function renderJadwal() {
       dot.style.background = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
       const waktu = document.createElement("span");
       waktu.className = "jadwal-waktu";
-      waktu.textContent = menitKeTeks(b.menit);
+      waktu.textContent = menitKeTeks(menitLokalBlok(b));      // ← waktu device
       const nama = document.createElement("span");
       nama.className = "jadwal-nama";
       nama.textContent = h ? h.nama : "(habit terhapus)";
@@ -182,7 +208,7 @@ async function renderJadwal() {
     if (!sel.value) { alert("Pilih habit dulu."); return; }
     const [jj, mm] = (time.value || "").split(":").map(Number);
     if (Number.isNaN(jj) || Number.isNaN(mm)) { alert("Waktu tidak valid."); return; }
-    await tambahBlok(sel.value, jj * 60 + mm);
+    await tambahBlok(sel.value, lokalKeUTC(jj * 60 + mm));    // ← wall-clock WIB → UTC
     await refreshJadwal();
   });
 
@@ -202,8 +228,8 @@ async function renderJadwalMobile() {
   if (!el) return;
   el.innerHTML = "";
 
-  const blok = (await ambilJadwal()).slice().sort((a, b) => a.menit - b.menit);
-  if (blok.length === 0) return;   // kosong → tak menampilkan apa-apa
+  const blok = (await ambilJadwal()).slice().sort((a, b) => menitLokalBlok(a) - menitLokalBlok(b));
+  if (blok.length === 0) return;
   const map = await petaHabit();
 
   const judul = document.createElement("h2");
@@ -219,7 +245,7 @@ async function renderJadwalMobile() {
     li.className = "jadwal-mrow";
     const t = document.createElement("span");
     t.className = "jadwal-mwaktu";
-    t.textContent = menitKeTeks(b.menit);
+    t.textContent = menitKeTeks(menitLokalBlok(b));            // ← waktu device (WITA/WIT/WIB)
     const dot = document.createElement("span");
     dot.className = "jadwal-dot";
     dot.style.background = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
