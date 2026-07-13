@@ -38,6 +38,7 @@ function lokalKeUTC(menitLokal) { return (menitLokal + offsetMenit() + 1440) % 1
 // Migrasi sekali: blok lama (.menit) → .menitUTC memakai offset device ini.
 // Dipanggil di path DESKTOP saja (tempat Anda mengatur; device Anda WIB).
 async function migrasiJadwalUTC() {
+  if (!window.matchMedia || !window.matchMedia("(min-width: 900px)").matches) return; // desktop-only (WIB)
   const arr = await ambilJadwal();
   let berubah = false;
   for (const b of arr) {
