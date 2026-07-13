@@ -698,6 +698,7 @@ body {
 }
 .jadwal-mwaktu { color: var(--gold); font-size: 15px; min-width: 52px; font-variant-numeric: tabular-nums; }
 .jadwal-mnama { font-size: 15px; color: var(--ink); }
+.jadwal-mkosong { font-size: 14px; color: var(--muted); margin: 4px 0 0; line-height: 1.5; }
 
 @media (min-width: 900px) {
   .jadwal-mobile { display: none; }              /* di desktop pakai jam melingkar */
@@ -713,9 +714,20 @@ body {
   .jadwal-grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
   @media (max-width: 1100px) { .jadwal-grid { grid-template-columns: 1fr; } }
 
-  .jadwal-jam-card { display: grid; place-items: center; padding: 24px; }
+  .jadwal-jam-card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px 24px 28px; }
+  .jadwal-jam-svg { width: 100%; display: grid; place-items: center; }
+  .jadwal-flip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 999px; cursor: pointer;
+    background: rgba(255,255,255,.05); border: 1px solid var(--line);
+    color: var(--ink); font-family: inherit; font-size: 13px; letter-spacing: .03em;
+    transition: border-color .2s, background .2s, transform .12s;
+  }
+  .jadwal-flip:hover { border-color: var(--gold); background: rgba(232,176,75,.08); transform: translateY(-1px); }
+  .jadwal-flip span { color: var(--gold); font-size: 15px; }
   .jam-svg { width: 100%; max-width: 460px; height: auto; }
   .jam-label { fill: var(--muted); font-family: "Fraunces", Georgia, serif; font-size: 14px; }
+  .jam-label.mayor { fill: color-mix(in srgb, var(--gold) 65%, var(--muted)); font-size: 15px; }
   .jam-jarum { stroke: var(--torii); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--sorot)); }
   .jam-pusat { fill: var(--torii); }
   .jam-tengah { fill: #fff; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 30px; }

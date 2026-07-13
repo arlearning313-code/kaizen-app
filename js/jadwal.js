@@ -66,50 +66,59 @@ async function petaHabit() {
   return map;
 }
 
-// ── Geometri jam melingkar ──────────────────────────────────────────────
+// ── Geometri jam melingkar (muka 12 jam, ala jam dinding) ───────────────
 const JAM_CX = 180, JAM_CY = 180, JAM_R = 140, JAM_HUB = 60;
-function titikJam(r, m) {
-  const th = (m / 1440) * 2 * Math.PI;               // 0:00 di atas, searah jarum jam
+
+// Paruh hari yang ditampilkan: "pagi" (00–12) atau "malam" (12–24). Bisa di-flip.
+let _paruh = null;
+function paruhSekarang() { return menitSekarang() < 720 ? "pagi" : "malam"; }
+
+// Titik pada muka 12 jam. mInHalf = menit dalam paruh (0..719); 0 = atas, searah jarum jam.
+function titikJam12(r, mInHalf) {
+  const th = (mInHalf / 720) * 2 * Math.PI;
   return [JAM_CX + r * Math.sin(th), JAM_CY - r * Math.cos(th)];
 }
 
 function svgJam(blok, map) {
+  const paruh = _paruh || (_paruh = paruhSekarang());
+  const basisJam = paruh === "malam" ? 12 : 0;          // label 00–11 atau 12–23
+
   let ticks = "", labels = "";
-  for (let h = 0; h < 24; h++) {
-    const m = h * 60, mayor = h % 3 === 0;
-    const [x1, y1] = titikJam(JAM_R - (mayor ? 12 : 6), m);
-    const [x2, y2] = titikJam(JAM_R, m);
+  for (let hh = 0; hh < 12; hh++) {
+    const mInHalf = hh * 60, mayor = hh % 3 === 0;      // mayor di 12/3/6/9 (atas/kanan/bawah/kiri)
+    const [x1, y1] = titikJam12(JAM_R - (mayor ? 12 : 6), mInHalf);
+    const [x2, y2] = titikJam12(JAM_R, mInHalf);
     ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" `
       + `stroke="${mayor ? "rgba(232,176,75,.55)" : "rgba(255,255,255,.16)"}" stroke-width="${mayor ? 2 : 1}"/>`;
-    if (mayor) {
-      const [lx, ly] = titikJam(JAM_R + 20, m);
-      labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="jam-label" text-anchor="middle" dominant-baseline="central">${jmDua(h)}</text>`;
-    }
+    const [lx, ly] = titikJam12(JAM_R + 20, mInHalf);
+    labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="jam-label${mayor ? " mayor" : ""}" text-anchor="middle" dominant-baseline="central">${jmDua(hh + basisJam)}</text>`;
   }
 
   let dots = "";
   for (const b of blok) {
+    const mLokal = menitLokalBlok(b);
+    if ((mLokal < 720 ? "pagi" : "malam") !== paruh) continue;   // hanya blok di paruh aktif
     const h = map[b.habitId];
     const warna = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
-    const mLokal = menitLokalBlok(b);                       // ← konversi ke waktu device
-    const [x, y] = titikJam(JAM_R, mLokal);
+    const [x, y] = titikJam12(JAM_R, mLokal % 720);
     dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
       + `<title>${menitKeTeks(mLokal)} — ${escTeks(h ? h.nama : "(terhapus)")}</title></circle>`;
   }
 
   const now = menitSekarang();
-  const [sx, sy] = titikJam(JAM_HUB - 6, now);
-  const [ex, ey] = titikJam(JAM_R - 4, now);
+  const cocok = (now < 720 ? "pagi" : "malam") === paruh;      // jarum penuh hanya di paruh saat ini
+  const [sx, sy] = titikJam12(JAM_HUB - 6, now % 720);
+  const [ex, ey] = titikJam12(JAM_R - 4, now % 720);
 
   return `
-    <svg viewBox="0 0 360 360" class="jam-svg" role="img" aria-label="Jam 24 jam">
+    <svg viewBox="0 0 360 360" class="jam-svg" role="img" aria-label="Jam ${paruh}">
       <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_R}" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="14"/>
       ${ticks}${labels}${dots}
-      <line id="jam-jarum" class="jam-jarum" x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"/>
+      <line id="jam-jarum" class="jam-jarum" style="opacity:${cocok ? 1 : .28}" x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"/>
       <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_HUB}" fill="rgba(8,11,32,.85)" stroke="rgba(255,255,255,.08)"/>
       <circle class="jam-pusat" cx="${JAM_CX}" cy="${JAM_CY}" r="5"/>
       <text id="jam-teks" class="jam-tengah" x="${JAM_CX}" y="${JAM_CY - 4}" text-anchor="middle">${menitKeTeks(now)}</text>
-      <text class="jam-tengah-sub" x="${JAM_CX}" y="${JAM_CY + 18}" text-anchor="middle">HARI INI</text>
+      <text class="jam-tengah-sub" x="${JAM_CX}" y="${JAM_CY + 18}" text-anchor="middle">${paruh === "malam" ? "MALAM" : "PAGI"}</text>
     </svg>`;
 }
 
@@ -133,7 +142,24 @@ async function renderJadwal() {
 
   const jamCard = document.createElement("div");
   jamCard.className = "dash-card jadwal-jam-card";
-  jamCard.innerHTML = svgJam(blok, map);
+  const flip = document.createElement("button");
+  flip.className = "jadwal-flip";
+  const jamWrap = document.createElement("div");
+  jamWrap.className = "jadwal-jam-svg";
+  const gambar = () => {
+    if (!_paruh) _paruh = paruhSekarang();
+    flip.innerHTML = (_paruh === "malam")
+      ? `🌙 Malam · 12–24 <span>⇄</span>`
+      : `☀️ Pagi · 00–12 <span>⇄</span>`;
+    jamWrap.innerHTML = svgJam(blok, map);
+  };
+  flip.addEventListener("click", () => {
+    _paruh = (_paruh === "malam") ? "pagi" : "malam";
+    gambar();
+    mulaiJamJarum();
+  });
+  gambar();
+  jamCard.append(flip, jamWrap);
   grid.appendChild(jamCard);
 
   const side = document.createElement("div");
@@ -229,14 +255,20 @@ async function renderJadwalMobile() {
   if (!el) return;
   el.innerHTML = "";
 
-  const blok = (await ambilJadwal()).slice().sort((a, b) => menitLokalBlok(a) - menitLokalBlok(b));
-  if (blok.length === 0) return;
-  const map = await petaHabit();
-
   const judul = document.createElement("h2");
   judul.className = "jadwal-mobile-judul";
   judul.textContent = "Jadwal Harian";
   el.appendChild(judul);
+
+  const blok = (await ambilJadwal()).slice().sort((a, b) => menitLokalBlok(a) - menitLokalBlok(b));
+  if (blok.length === 0) {
+    const p = document.createElement("p");
+    p.className = "jadwal-mkosong";
+    p.textContent = "Belum ada jadwal di perangkat ini. Atur blok lewat desktop, lalu Ekspor → Impor agar muncul di sini.";
+    el.appendChild(p);
+    return;
+  }
+  const map = await petaHabit();
 
   const ul = document.createElement("ul");
   ul.className = "jadwal-mlist";
@@ -272,12 +304,14 @@ function mulaiJamJarum() {
     const svg = document.querySelector("#jadwal .jam-svg");
     if (!svg) return;
     const now = menitSekarang();
-    const [sx, sy] = titikJam(JAM_HUB - 6, now);
-    const [ex, ey] = titikJam(JAM_R - 4, now);
+    const cocok = (now < 720 ? "pagi" : "malam") === _paruh;
+    const [sx, sy] = titikJam12(JAM_HUB - 6, now % 720);
+    const [ex, ey] = titikJam12(JAM_R - 4, now % 720);
     const jarum = svg.querySelector("#jam-jarum");
     if (jarum) {
       jarum.setAttribute("x1", sx.toFixed(1)); jarum.setAttribute("y1", sy.toFixed(1));
       jarum.setAttribute("x2", ex.toFixed(1)); jarum.setAttribute("y2", ey.toFixed(1));
+      jarum.style.opacity = cocok ? 1 : 0.28;
     }
     const teks = svg.querySelector("#jam-teks");
     if (teks) teks.textContent = menitKeTeks(now);
