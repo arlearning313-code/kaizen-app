@@ -1,8 +1,11 @@
-// js/cover.js — Cover Beranda: hero countdown + motivasi menuju Jepang (desktop).
+// js/cover.js — Cover Beranda: hero countdown + motivasi + progress kesiapan (desktop).
 
 // ── Sasaran & jendela waktu ─────────────────────────────────────────────
 const TARGET_JEPANG = new Date(2029, 6, 13);   // 13 Juli 2029 (bulan 0-indeks: 6 = Juli)
-const MULAI_JEPANG  = new Date(2026, 6, 13);   // titik mulai (saat target ditetapkan) → dasar % progress
+const MULAI_JEPANG  = new Date(2026, 6, 13);   // titik mulai (untuk komponen "waktu")
+
+// ── Bobot tiap komponen progress (boleh diubah; tak harus berjumlah 100) ─
+const BOBOT_PROGRESS = { waktu: 1, tabungan: 1, level: 1, quest: 1 };
 
 // ── Kutipan bergilir (berganti tiap hari) ───────────────────────────────
 const KUTIPAN_JEPANG = [
@@ -19,7 +22,7 @@ function kutipanHariIni() {
   return KUTIPAN_JEPANG[hari % KUTIPAN_JEPANG.length];
 }
 
-// ── Hitung mundur kalender yang konsisten (thn/bln/hr + jam/mnt/dtk) ─────
+// ── Hitung mundur kalender (thn/bln/hr + jam/mnt/dtk) ────────────────────
 function hitungMundur(target) {
   const now = new Date();
   if (target <= now) return { tahun:0, bulan:0, hari:0, jam:0, menit:0, detik:0, habis:true };
@@ -42,8 +45,60 @@ function hitungMundur(target) {
 
 const pad2 = (n) => String(n).padStart(2, "0");
 
+// ── Komponen progress ───────────────────────────────────────────────────
+// (a) waktu — murni kalender, dihitung tiap detik
+function fraksiWaktu() {
+  const total = TARGET_JEPANG - MULAI_JEPANG;
+  const lewat = Date.now() - MULAI_JEPANG;
+  return Math.max(0, Math.min(1, lewat / total));
+}
+
+// (b,c,d) tabungan / level-xp / quest — dari IndexedDB, dihitung saat render
+let _fraksiData = { tabungan: 0, level: 0, quest: 0 };
+
+async function hitungFraksiData() {
+  // (b) Tabungan Japan Fund → saldo terakhir / milestone terakhir (Rp185 jt)
+  let fTab = 0;
+  if (typeof ambilFinansial === "function") {
+    const arr = await ambilFinansial();
+    const saldo = arr.length ? arr[arr.length - 1].jumlah : 0;
+    const targetDana = (typeof JAPAN_MILESTONE !== "undefined")
+      ? JAPAN_MILESTONE[JAPAN_MILESTONE.length - 1] : 185000000;
+    fTab = Math.min(1, saldo / targetDana);
+  }
+
+  // (c) Level / XP → total XP / XP untuk Level 50 (= keberangkatan)
+  let fLvl = 0;
+  if (typeof totalXP === "function") {
+    const xp = await totalXP();
+    const ambangMax = (typeof KONFIG !== "undefined" && KONFIG.ambangXP[50]) || 45000;
+    fLvl = Math.min(1, xp / ambangMax);
+  }
+
+  // (d) Quest utama → jumlah quest selesai / total quest
+  let fQue = 0;
+  if (typeof ambilQuests === "function" && typeof questSelesaiSet === "function") {
+    const quests = await ambilQuests();
+    const set = await questSelesaiSet();
+    const done = quests.filter((q) => set.has(q.id)).length;
+    fQue = quests.length ? done / quests.length : 0;
+  }
+
+  return { tabungan: fTab, level: fLvl, quest: fQue };
+}
+
+// Skor gabungan (rata-rata berbobot) → { pct: 0..100, f: {komponen} }
+function progressGabungan() {
+  const f = { waktu: fraksiWaktu(), ..._fraksiData };
+  const b = BOBOT_PROGRESS;
+  const tot = b.waktu + b.tabungan + b.level + b.quest;
+  const skor = (f.waktu*b.waktu + f.tabungan*b.tabungan + f.level*b.level + f.quest*b.quest) / tot;
+  return { pct: skor * 100, f };
+}
+
 // ── Bangun elemen cover ─────────────────────────────────────────────────
-function coverJepang() {
+async function coverJepang() {
+  _fraksiData = await hitungFraksiData();
   const k = kutipanHariIni();
   const el = document.createElement("section");
   el.className = "dash-span cover-jp";
@@ -66,10 +121,16 @@ function coverJepang() {
 
       <div class="cover-progress">
         <div class="cover-progress-head">
-          <span>Progress menuju keberangkatan</span>
+          <span>Kesiapan menuju keberangkatan</span>
           <span id="cover-persen">0%</span>
         </div>
         <div class="cover-bar"><span id="cover-bar-isi" style="width:0%"></span></div>
+        <div class="cover-rincian">
+          <span><b id="rinci-waktu">0%</b> Waktu</span>
+          <span><b id="rinci-tabungan">0%</b> Tabungan</span>
+          <span><b id="rinci-level">0%</b> Level/XP</span>
+          <span><b id="rinci-quest">0%</b> Quest</span>
+        </div>
       </div>
 
       <blockquote class="cover-kutipan">
@@ -83,11 +144,11 @@ function coverJepang() {
   return el;
 }
 
-// ── Satu interval global (aman meski renderDashboard dipanggil berkali-kali) ──
+// ── Satu interval global (waktu tiap detik; data lain dari cache render) ──
 let _coverInterval = null;
 function mulaiCoverJam() {
-  // Fitur desktop saja — jangan jalankan timer di HP
   if (!window.matchMedia || !window.matchMedia("(min-width: 900px)").matches) return;
+  const setTxt = (id, teks) => { const e = document.getElementById(id); if (e) e.textContent = teks; };
 
   const tik = () => {
     const box = document.getElementById("cover-hitung");
@@ -96,17 +157,18 @@ function mulaiCoverJam() {
     box.querySelector('[data-u="tahun"]').textContent = pad2(t.tahun);
     box.querySelector('[data-u="bulan"]').textContent = pad2(t.bulan);
     box.querySelector('[data-u="hari"]').textContent  = pad2(t.hari);
+    setTxt("cover-jam", `${pad2(t.jam)} : ${pad2(t.menit)} : ${pad2(t.detik)}`);
 
-    const jamEl = document.getElementById("cover-jam");
-    if (jamEl) jamEl.textContent = `${pad2(t.jam)} : ${pad2(t.menit)} : ${pad2(t.detik)}`;
-
-    const total = TARGET_JEPANG - MULAI_JEPANG;
-    const lewat = Date.now() - MULAI_JEPANG;
-    const pct   = Math.max(0, Math.min(100, (lewat / total) * 100));
+    const { pct, f } = progressGabungan();
     const isi = document.getElementById("cover-bar-isi");
-    const per = document.getElementById("cover-persen");
     if (isi) isi.style.width = pct.toFixed(1) + "%";
-    if (per) per.textContent = pct.toFixed(pct < 10 ? 1 : 0) + "%";
+    setTxt("cover-persen", pct.toFixed(pct < 10 ? 1 : 0) + "%");
+
+    const p = (x) => (x * 100).toFixed(x < 0.1 ? 1 : 0) + "%";
+    setTxt("rinci-waktu",    p(f.waktu));
+    setTxt("rinci-tabungan", p(f.tabungan));
+    setTxt("rinci-level",    p(f.level));
+    setTxt("rinci-quest",    p(f.quest));
   };
 
   tik();

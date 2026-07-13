@@ -656,6 +656,12 @@ body {
     transition: width .9s cubic-bezier(.2,.8,.2,1);
   }
 
+  .cover-rincian {
+    display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px;
+    font-size: 11px; letter-spacing: .06em; color: var(--muted);
+  }
+  .cover-rincian b { color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; }
+
   /* Kutipan motivasi */
   .cover-kutipan {
     margin: 30px 0 0; padding-left: 18px; border-left: 2px solid var(--torii);

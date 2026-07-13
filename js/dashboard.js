@@ -174,7 +174,7 @@ async function renderDashboard() {
   const xp = await totalXP();
 
   // Cover Beranda (hero countdown + motivasi) — paling atas
-  if (typeof coverJepang === "function") el.appendChild(coverJepang());
+  if (typeof coverJepang === "function") el.appendChild(await coverJepang());
 
   el.appendChild(kartuHero(k, xp));
   el.appendChild(await panelSkillGate(k, xp));
