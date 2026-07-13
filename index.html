@@ -26,6 +26,7 @@
     <script src="js/karakter-ui.js"></script>
     <script src="js/fx.js"></script>
     <script src="js/cover.js"></script>
+    <script src="js/jadwal.js"></script>
     <link rel="icon" href="img/kaizen-logo-icon-192.png" />
   </head>
   <body>
@@ -43,6 +44,7 @@
         <button class="nav-item" data-target="hari-ini"><span class="nav-ikon">🌅</span><span class="nav-teks">Hari Ini</span></button>
         <button class="nav-item" data-target="habit"><span class="nav-ikon">⚔️</span><span class="nav-teks">Habit</span></button>
         <button class="nav-item" data-target="quest"><span class="nav-ikon">🗺️</span><span class="nav-teks">Quest</span></button>
+        <button class="nav-item" data-target="jadwal"><span class="nav-ikon">🕛</span><span class="nav-teks">Jadwal</span></button>
       </nav>
 
       <div class="sidebar-kaki">
@@ -59,6 +61,7 @@
       <ul id="daftar-habit" class="daftar"></ul>
       <p id="ringkasan" class="ringkasan"></p>
       <section id="quest-mobile" class="quest-mobile"></section>
+      <section id="jadwal-mobile" class="jadwal-mobile"></section>
 
       <div class="jurnal-aksi">
         <button id="btn-relapse" class="tombol">⚠ Catat relapse</button>
@@ -77,6 +80,7 @@
     <section id="dashboard" class="dashboard"></section>
     <section id="manajer" class="manajer"></section>
     <section id="manajer-quest" class="manajer"></section>
+    <section id="jadwal" class="jadwal"></section>
 
     <script>
       if ("serviceWorker" in navigator) {
@@ -104,7 +108,9 @@
         .then(() => renderManajer())
         .then(() => renderQuestMobile())
         .then(() => renderManajerQuest())
-        .then(() => renderSidebarKarakter());
+        .then(() => renderSidebarKarakter())
+        .then(() => renderJadwal())
+        .then(() => renderJadwalMobile());
       pasangTombolSync();
       pasangTombolJurnal();
       pasangTombolSetelan();
