@@ -173,6 +173,9 @@ async function renderDashboard() {
   const k = await ambilKarakter();
   const xp = await totalXP();
 
+  // Cover Beranda (hero countdown + motivasi) — paling atas
+  if (typeof coverJepang === "function") el.appendChild(coverJepang());
+
   el.appendChild(kartuHero(k, xp));
   el.appendChild(await panelSkillGate(k, xp));
   el.appendChild(await heatmapKonsistensi(84));
