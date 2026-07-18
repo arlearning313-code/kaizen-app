@@ -3,7 +3,7 @@
 // Analogi: 1 database = 1 workbook Excel; tiap store = 1 sheet; tiap record = 1 baris.
 
 const NAMA_DB = "kaizen-db";
-const VERSI_DB = 1;
+const VERSI_DB = 2;
 
 let _dbPromise = null; // simpan koneksi supaya tak dibuka berulang
 
@@ -38,6 +38,14 @@ function bukaDatabase() {
       }
       if (!db.objectStoreNames.contains("settings")) {
         db.createObjectStore("settings", { keyPath: "key" });
+      }
+            if (!db.objectStoreNames.contains("quests")) {
+        db.createObjectStore("quests", { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("questLogs")) {
+        const ql = db.createObjectStore("questLogs", { keyPath: "id" });
+        ql.createIndex("byDate", "date", { unique: false });
+        ql.createIndex("byQuest", "questId", { unique: false });
       }
     };
 

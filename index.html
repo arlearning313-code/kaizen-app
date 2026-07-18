@@ -15,6 +15,7 @@
     <script src="js/character.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/manager.js"></script>
+    <script src="js/quest.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/navigasi.js"></script>
     <script src="js/karakter-ui.js"></script>
@@ -34,10 +35,21 @@
 
       <nav class="sidebar-nav">
         <span class="nav-sorot" aria-hidden="true"></span>
-        <button class="nav-item" data-target="beranda"><span class="nav-ikon">🏯</span><span class="nav-teks">Beranda</span></button>
-        <button class="nav-item" data-target="hari-ini"><span class="nav-ikon">🌅</span><span class="nav-teks">Hari Ini</span></button>
-        <button class="nav-item" data-target="habit"><span class="nav-ikon">⚔️</span><span class="nav-teks">Habit</span></button>
-        <button class="nav-item" data-target="jadwal"><span class="nav-ikon">🕛</span><span class="nav-teks">Jadwal</span></button>
+        <button class="nav-item" data-target="beranda">
+          <span class="nav-ikon">🏯</span><span class="nav-teks">Beranda</span>
+        </button>
+        <button class="nav-item" data-target="hari-ini">
+          <span class="nav-ikon">🌅</span><span class="nav-teks">Hari Ini</span>
+        </button>
+        <button class="nav-item" data-target="habit">
+          <span class="nav-ikon">⚔️</span><span class="nav-teks">Habit</span>
+        </button>
+        <button class="nav-item" data-target="quest">
+          <span class="nav-ikon">🗺️</span><span class="nav-teks">Quest</span>
+        </button>
+        <button class="nav-item" data-target="jadwal">
+          <span class="nav-ikon">🕛</span><span class="nav-teks">Jadwal</span>
+        </button>
       </nav>
 
       <div class="sidebar-kaki">
@@ -65,6 +77,7 @@
 
     <section id="dashboard" class="dashboard"></section>
     <section id="manajer" class="manajer"></section>
+    <section id="manajer-quest" class="manajer"></section>
     <section id="jadwal" class="jadwal"></section>
 
     <script>
@@ -81,6 +94,7 @@
         .then(() => tampilkanChecklist())
         .then(() => renderDashboard())
         .then(() => renderManajer())
+        .then(() => renderQuest())
         .then(() => renderSidebarKarakter())
         .then(() => renderJadwal())
         .then(() => renderJadwalMobile());

@@ -792,3 +792,33 @@ body {
   font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
 }
 .ka-lakukan:hover { opacity: .9; }
+
+/* ── Quest · Jalur Penguasaan ─────────────────────────────────────── */
+.qt-intro { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.qt-agg { color: var(--ink); font-size: 14px; margin: 0 0 18px; }
+.qt-agg-num { color: var(--gold); font-weight: 700; font-size: 17px; }
+.qt-list { display: flex; flex-direction: column; gap: 12px; }
+.qt-card {
+  --qt-warna: var(--gold);
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--qt-warna); border-radius: 14px; padding: 14px 16px;
+}
+.qt-head { display: flex; align-items: center; gap: 12px; }
+.qt-ikon {
+  width: 40px; height: 40px; flex: 0 0 auto; border-radius: 10px; font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--qt-warna) 16%, transparent);
+}
+.qt-info { min-width: 0; flex: 1; }
+.qt-nama { font-size: 16px; color: #fff; }
+.qt-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.qt-stat { font-size: 13px; color: var(--muted); margin: 12px 0; }
+.qt-stat-num { color: var(--qt-warna); font-weight: 700; font-size: 16px; }
+.qt-aksi { display: flex; gap: 8px; align-items: center; }
+.qt-go {
+  margin-right: auto; background: var(--qt-warna); color: var(--bg); border: none;
+  border-radius: 20px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+}
+.qt-go:hover { opacity: .9; }
+.qt-go.done { background: transparent; color: var(--qt-warna); border: 1px solid var(--qt-warna); }
