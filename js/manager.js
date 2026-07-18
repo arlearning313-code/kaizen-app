@@ -1,10 +1,7 @@
-// manager.js — MODUL 15 (dirombak): Manajer Habit (khusus desktop).
-// Field form mengikuti kartu habit di dokumen (Bab VI): Kategori, Frekuensi,
-// Tingkat Dampak, Tingkat Kesulitan, Tujuan, Masalah, Alasan Penting, Deskripsi.
-// Tak ada lagi Tier / Rarity / XP / tangga level.
+// manager.js — MODUL 15 (disederhanakan): Manajer Habit (desktop).
+// Form ringkas: Nama (wajib) + Kategori + Frekuensi + Takaran + Catatan. ID otomatis.
 
-const DAMPAK = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah-Sedang", "Rendah"];
-const KESULITAN = ["Sangat Sulit", "Sedang-Sulit", "Sedang", "Mudah-Sedang", "Mudah"];
+const KATEGORI = ["Anti-Corrupt", "Karier", "Fisik", "Spiritual", "Mental", "Sosial", "Emosional", "Lainnya"];
 
 function escAttr(s) {
   return String(s == null ? "" : s)
@@ -13,11 +10,22 @@ function escAttr(s) {
 }
 
 function labelFrekuensi(f) {
-  if (!f) return "?";
+  if (!f) return "Harian";
   if (f.tipe === "mingguan") return "Mingguan";
   if (f.tipe === "bulanan") return "Bulanan";
-  if (f.tipe === "opsional") return "Ongoing/opsional";
+  if (f.tipe === "opsional") return "Opsional";
   return "Harian";
+}
+
+// ID otomatis: H-01, H-02, … (cari nomor terbesar yang ada, +1).
+async function idBerikutnya() {
+  const habits = await ambilSemua("habits");
+  let maks = 0;
+  for (const h of habits) {
+    const m = /^H-(\d+)$/.exec(h.id || "");
+    if (m) maks = Math.max(maks, Number(m[1]));
+  }
+  return "H-" + String(maks + 1).padStart(2, "0");
 }
 
 async function renderManajer() {
@@ -84,13 +92,11 @@ function barisManajer(h) {
   info.className = "manajer-info";
   const nm = document.createElement("div");
   nm.className = "manajer-nama";
-  nm.textContent = `${h.id} · ${h.nama}`;
+  nm.textContent = h.nama;
   const meta = document.createElement("div");
   meta.className = "manajer-meta";
-  const bag = [h.kategori || "—", labelFrekuensi(h.frekuensi)];
+  const bag = [h.kategori || "Lainnya", labelFrekuensi(h.frekuensi)];
   if (h.frekuensi?.detil) bag.push(h.frekuensi.detil);
-  if (h.dampak) bag.push("Dampak " + h.dampak);
-  if (h.kesulitan) bag.push(h.kesulitan);
   meta.textContent = bag.join(" · ");
   info.append(nm, meta);
 
@@ -124,13 +130,7 @@ function bukaEditorHabit(habit) {
   const baru = !habit;
   const h = habit
     ? JSON.parse(JSON.stringify(habit))
-    : {
-        id: "", nama: "", kategori: "",
-        frekuensi: { tipe: "harian", detil: "" },
-        dampak: "Sedang", kesulitan: "Sedang",
-        tujuan: "", masalah: "", alasan: "", deskripsi: "",
-        aktif: true, diubah: 0,
-      };
+    : { id: "", nama: "", kategori: "Lainnya", frekuensi: { tipe: "harian", detil: "" }, catatan: "", aktif: true, diubah: 0 };
   if (!h.frekuensi) h.frekuensi = { tipe: "harian" };
 
   const overlay = document.createElement("div");
@@ -138,27 +138,22 @@ function bukaEditorHabit(habit) {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
 
   const modal = document.createElement("div");
-  modal.className = "modal modal-lebar";
+  modal.className = "modal";
   modal.innerHTML = `
     <h2 class="modal-judul">${baru ? "Habit Baru" : "Edit Habit"}</h2>
-    <p class="modal-desk">Isi mengikuti kartu habit di dokumen (Bab VI).</p>
-    <label class="modal-label">ID (unik, mis. H-01)
-      <input class="modal-input" id="f-id" value="${escAttr(h.id)}" ${baru ? "" : "readonly"}>
+    <label class="modal-label">Nama (wajib)
+      <input class="modal-input" id="f-nama" value="${escAttr(h.nama)}" placeholder="mis. Belajar Bahasa Jepang">
     </label>
-    <label class="modal-label">Nama
-      <input class="modal-input" id="f-nama" value="${escAttr(h.nama)}">
-    </label>
-    <label class="modal-label">Kategori (mis. Fisik · Spiritual · Karier, Sosial)
-      <input class="modal-input" id="f-kategori" value="${escAttr(h.kategori)}">
+    <label class="modal-label">Kategori
+      <select class="modal-input" id="f-kategori">
+        ${KATEGORI.map((k) => `<option ${h.kategori===k?"selected":""}>${k}</option>`).join("")}
+      </select>
     </label>
     <label class="modal-label">Frekuensi
       <select class="modal-input" id="f-frek">
-        ${[["harian","Harian"],["mingguan","Mingguan"],["bulanan","Bulanan"],["opsional","Ongoing / opsional"]]
+        ${[["harian","Setiap hari"],["mingguan","Mingguan"],["bulanan","Bulanan"],["opsional","Opsional (tak dihitung skor)"]]
           .map(([v,t]) => `<option value="${v}" ${h.frekuensi?.tipe===v?"selected":""}>${t}</option>`).join("")}
       </select>
-    </label>
-    <label class="modal-label">Takaran / detail (opsional, mis. "30 menit", "3 push up")
-      <input class="modal-input" id="f-detil" value="${escAttr(h.frekuensi?.detil||"")}">
     </label>
     <label class="modal-label" id="wrap-hari" style="display:none">Hari (0=Min … 6=Sab), pisah koma
       <input class="modal-input" id="f-hari" value="${(h.frekuensi?.hari||[]).join(",")}">
@@ -166,30 +161,11 @@ function bukaEditorHabit(habit) {
     <label class="modal-label" id="wrap-tanggal" style="display:none">Tanggal (1–31)
       <input class="modal-input" id="f-tanggal" type="number" min="1" max="31" value="${h.frekuensi?.tanggal||1}">
     </label>
-    <label class="modal-label">Tingkat Dampak
-      <select class="modal-input" id="f-dampak">
-        ${DAMPAK.map((d) => `<option ${h.dampak===d?"selected":""}>${d}</option>`).join("")}
-      </select>
+    <label class="modal-label">Takaran (opsional)
+      <input class="modal-input" id="f-detil" value="${escAttr(h.frekuensi?.detil||"")}" placeholder='mis. "30 menit", "3 push up"'>
     </label>
-    <label class="modal-label">Tingkat Kesulitan
-      <select class="modal-input" id="f-kesulitan">
-        ${KESULITAN.map((d) => `<option ${h.kesulitan===d?"selected":""}>${d}</option>`).join("")}
-      </select>
-    </label>
-    <label class="modal-label">Tujuan
-      <textarea class="modal-input" id="f-tujuan" rows="2">${escAttr(h.tujuan)}</textarea>
-    </label>
-    <label class="modal-label">Masalah yang Diselesaikan
-      <textarea class="modal-input" id="f-masalah" rows="2">${escAttr(h.masalah)}</textarea>
-    </label>
-    <label class="modal-label">Alasan Penting
-      <textarea class="modal-input" id="f-alasan" rows="3">${escAttr(h.alasan)}</textarea>
-    </label>
-    <label class="modal-label">Deskripsi (opsional)
-      <textarea class="modal-input" id="f-deskripsi" rows="2">${escAttr(h.deskripsi)}</textarea>
-    </label>
-    <label class="modal-label" style="display:flex;align-items:center;gap:8px">
-      <input type="checkbox" id="f-aktif" ${h.aktif?"checked":""} style="width:auto"> Aktif (tampil di checklist)
+    <label class="modal-label">Catatan / alasan (opsional)
+      <textarea class="modal-input" id="f-catatan" rows="2" placeholder="Kenapa habit ini penting buatmu?">${escAttr(h.catatan||"")}</textarea>
     </label>
 
     <div class="modal-aksi">
@@ -210,20 +186,16 @@ function bukaEditorHabit(habit) {
   selFrek.addEventListener("change", toggleFrek);
   toggleFrek();
 
+  modal.querySelector("#f-nama").focus();
   modal.querySelector("#btn-batal").addEventListener("click", () => overlay.remove());
   modal.querySelector("#btn-simpan").addEventListener("click", async () => {
     const val = (id) => modal.querySelector(id).value.trim();
     const data = {
-      id: val("#f-id"),
+      id: baru ? await idBerikutnya() : h.id,
       nama: val("#f-nama"),
-      kategori: val("#f-kategori"),
-      dampak: modal.querySelector("#f-dampak").value,
-      kesulitan: modal.querySelector("#f-kesulitan").value,
-      tujuan: val("#f-tujuan"),
-      masalah: val("#f-masalah"),
-      alasan: val("#f-alasan"),
-      deskripsi: val("#f-deskripsi"),
-      aktif: modal.querySelector("#f-aktif").checked,
+      kategori: modal.querySelector("#f-kategori").value,
+      catatan: val("#f-catatan"),
+      aktif: baru ? true : !!h.aktif,
       diubah: Date.now(),
     };
     const tipe = selFrek.value;
@@ -235,17 +207,12 @@ function bukaEditorHabit(habit) {
     } else {
       data.frekuensi = { tipe, detil };
     }
-    if (await simpanHabit(data, baru)) overlay.remove();
+    if (await simpanHabit(data)) overlay.remove();
   });
 }
 
-async function simpanHabit(data, baru) {
-  if (!data.id) { alert("ID wajib diisi."); return false; }
+async function simpanHabit(data) {
   if (!data.nama) { alert("Nama wajib diisi."); return false; }
-  if (baru && (await ambil("habits", data.id))) {
-    alert(`ID "${data.id}" sudah dipakai. Pilih ID lain.`);
-    return false;
-  }
   await simpan("habits", data);
   await renderManajer();
   if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
@@ -253,7 +220,7 @@ async function simpanHabit(data, baru) {
 }
 
 async function hapusHabit(id) {
-  if (!confirm(`Hapus habit "${id}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+  if (!confirm("Hapus habit ini? Tindakan ini tidak bisa dibatalkan.")) return;
   await hapus("habits", id);
   if (confirm("Hapus juga semua catatan (log) habit ini?")) {
     const logs = await ambilSemua("logs");
