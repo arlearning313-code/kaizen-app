@@ -12,7 +12,6 @@ async function ekspor() {
     logs: await ambilSemua("logs"),
     journal: await ambilSemua("journal"),
     character: await ambilSemua("character"),
-    achievements: await ambilSemua("achievements"),
     settings: await ambilSemua("settings"),
   };
 
@@ -63,12 +62,12 @@ async function impor(teks) {
     return;
   }
 
-  const stores = ["habits", "logs", "journal", "character", "achievements", "settings"];
+  const stores = ["habits", "logs", "journal", "character", "settings"];
 
   const gantiTotal = confirm(
     "Impor data backup — pilih mode:\n\n" +
     "• OK = GANTI TOTAL (restore). Semua data di perangkat ini DIGANTI dengan isi file — " +
-    "mengembalikan level, XP, habit, log, jurnal, trophy, setelan. (Disarankan)\n\n" +
+    "mengembalikan habit, log, kesiapan, jurnal, setelan. (Disarankan)\n\n" +
     "• Batal = GABUNG. Gabungkan dengan data yang ada (per catatan, versi terbaru menang)."
   );
 

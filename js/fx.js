@@ -24,46 +24,9 @@ function fxBurst(x, y, warna, jumlah = 12) {
   setTimeout(() => wrap.remove(), 950);
 }
 
-// Angka "+XP" melayang naik.
-function fxFloatXP(x, y, teks, warna) {
-  const el = document.createElement("div");
-  el.className = "fx-xp";
-  el.textContent = teks;
-  el.style.left = x + "px";
-  el.style.top = y + "px";
-  el.style.color = warna;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1100);
-}
-
 // Dipanggil dari toggleHabit saat sebuah habit BARU jadi selesai.
 function fxHabitSelesai(habit) {
   const warna = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e8b04b";
   const { x, y } = fxPointer;
   fxBurst(x, y, warna);
-  if (habit && habit.xp) fxFloatXP(x, y, "+" + habit.xp + " XP", warna);
-}
-
-// Perayaan level-up: overlay layar penuh (mobile + desktop).
-function rayakanLevelUp(levelBaru, st) {
-  const stg = (typeof stageVisual === "function" && st) ? stageVisual(st.no) : { kanji: "改", c1: "#e8b04b" };
-  const ov = document.createElement("div");
-  ov.className = "fx-levelup";
-  ov.style.setProperty("--c1", stg.c1);
-  ov.innerHTML = `
-    <div class="fx-lu-flash"></div>
-    <div class="fx-lu-kartu">
-      <div class="fx-lu-kanji">${stg.kanji}</div>
-      <div class="fx-lu-label">LEVEL UP</div>
-      <div class="fx-lu-level">Level ${levelBaru}</div>
-      <div class="fx-lu-stage">${st ? "Stage " + st.no + " · " + st.nama : ""}</div>
-    </div>`;
-  document.body.appendChild(ov);
-
-  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  for (let n = 0; n < 3; n++) setTimeout(() => fxBurst(cx, cy, stg.c1, 16), n * 160);
-
-  const tutup = () => { ov.classList.add("keluar"); setTimeout(() => ov.remove(), 500); };
-  ov.addEventListener("click", tutup);
-  setTimeout(tutup, 2400);
 }

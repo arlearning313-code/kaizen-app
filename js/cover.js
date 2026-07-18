@@ -5,7 +5,7 @@ const TARGET_JEPANG = new Date(2029, 6, 13);   // 13 Juli 2029 (bulan 0-indeks: 
 const MULAI_JEPANG  = new Date(2026, 6, 13);   // titik mulai (untuk komponen "waktu")
 
 // ── Bobot tiap komponen progress (boleh diubah; tak harus berjumlah 100) ─
-const BOBOT_PROGRESS = { waktu: 1, tabungan: 1, level: 1, quest: 1 };
+const BOBOT_PROGRESS = { waktu: 1, kesiapan: 2 };
 
 // ── Kutipan bergilir (berganti tiap hari) ───────────────────────────────
 const KUTIPAN_JEPANG = [
@@ -54,45 +54,20 @@ function fraksiWaktu() {
 }
 
 // (b,c,d) tabungan / level-xp / quest — dari IndexedDB, dihitung saat render
-let _fraksiData = { tabungan: 0, level: 0, quest: 0 };
+let _fraksiData = { kesiapan: 0 };
 
 async function hitungFraksiData() {
-  // (b) Tabungan Japan Fund → saldo terakhir / milestone terakhir (Rp185 jt)
-  let fTab = 0;
-  if (typeof ambilFinansial === "function") {
-    const arr = await ambilFinansial();
-    const saldo = arr.length ? arr[arr.length - 1].jumlah : 0;
-    const targetDana = (typeof JAPAN_MILESTONE !== "undefined")
-      ? JAPAN_MILESTONE[JAPAN_MILESTONE.length - 1] : 185000000;
-    fTab = Math.min(1, saldo / targetDana);
-  }
-
-  // (c) Level / XP → total XP / XP untuk Level 50 (= keberangkatan)
-  let fLvl = 0;
-  if (typeof totalXP === "function") {
-    const xp = await totalXP();
-    const ambangMax = (typeof KONFIG !== "undefined" && KONFIG.ambangXP[50]) || 45000;
-    fLvl = Math.min(1, xp / ambangMax);
-  }
-
-  // (d) Quest utama → jumlah quest selesai / total quest
-  let fQue = 0;
-  if (typeof ambilQuests === "function" && typeof questSelesaiSet === "function") {
-    const quests = await ambilQuests();
-    const set = await questSelesaiSet();
-    const done = quests.filter((q) => set.has(q.id)).length;
-    fQue = quests.length ? done / quests.length : 0;
-  }
-
-  return { tabungan: fTab, level: fLvl, quest: fQue };
+  let fSiap = 0;
+  if (typeof kesiapanTotal === "function") fSiap = (await kesiapanTotal()) / 100;
+  return { kesiapan: fSiap };
 }
 
 // Skor gabungan (rata-rata berbobot) → { pct: 0..100, f: {komponen} }
 function progressGabungan() {
   const f = { waktu: fraksiWaktu(), ..._fraksiData };
   const b = BOBOT_PROGRESS;
-  const tot = b.waktu + b.tabungan + b.level + b.quest;
-  const skor = (f.waktu*b.waktu + f.tabungan*b.tabungan + f.level*b.level + f.quest*b.quest) / tot;
+  const tot = b.waktu + b.kesiapan;
+  const skor = (f.waktu * b.waktu + f.kesiapan * b.kesiapan) / tot;
   return { pct: skor * 100, f };
 }
 
@@ -127,9 +102,7 @@ async function coverJepang() {
         <div class="cover-bar"><span id="cover-bar-isi" style="width:0%"></span></div>
         <div class="cover-rincian">
           <span><b id="rinci-waktu">0%</b> Waktu</span>
-          <span><b id="rinci-tabungan">0%</b> Tabungan</span>
-          <span><b id="rinci-level">0%</b> Level/XP</span>
-          <span><b id="rinci-quest">0%</b> Quest</span>
+          <span><b id="rinci-kesiapan">0%</b> Kesiapan</span>
         </div>
       </div>
 
@@ -166,9 +139,7 @@ function mulaiCoverJam() {
 
     const p = (x) => (x * 100).toFixed(x < 0.1 ? 1 : 0) + "%";
     setTxt("rinci-waktu",    p(f.waktu));
-    setTxt("rinci-tabungan", p(f.tabungan));
-    setTxt("rinci-level",    p(f.level));
-    setTxt("rinci-quest",    p(f.quest));
+    setTxt("rinci-kesiapan", p(f.kesiapan));
   };
 
   tik();
