@@ -4,8 +4,21 @@
 //  • Data: 1 record di store "settings" (key "jadwal") → array blok {id, habitId, menit}.
 //    menit = menit sejak tengah malam (0..1439). Tidak mengubah skema habit.
 
-// Palet rarity — sama dengan yang dipakai di CSS (.app .baris[data-rarity]).
-const WARNA_RARITY = { common: "#8f8db0", rare: "#5aa9e6", epic: "#b57ee6", legendary: "#e8b04b" };
+// Warna titik: habit diwarnai per kategori; kegiatan manual pakai warna netral.
+const WARNA_KATEGORI = {
+  "Anti-Corrupt": "#e0574a", "Karier": "#4a90d9", "Fisik": "#4fb286",
+  "Spiritual": "#e8b04b", "Mental": "#b57ee6", "Sosial": "#5aa9e6",
+  "Emosional": "#e79fb0", "Lainnya": "#8f8db0",
+};
+const WARNA_MANUAL = "#9aa5b1";
+function warnaBlok(b, map) {
+  if (b.habitId) { const h = map[b.habitId]; return (h && WARNA_KATEGORI[h.kategori]) || WARNA_KATEGORI["Lainnya"]; }
+  return WARNA_MANUAL;
+}
+function namaBlok(b, map) {
+  if (b.habitId) { const h = map[b.habitId]; return h ? h.nama : "(habit terhapus)"; }
+  return b.nama || "(kegiatan)";
+}
 
 // ── Penyimpanan (pola sama dengan trackers.js / quest.js) ───────────────
 async function ambilJadwal() {
@@ -15,9 +28,13 @@ async function ambilJadwal() {
 async function simpanJadwal(arr) {
   await simpan("settings", { key: "jadwal", value: arr, diubah: Date.now() });
 }
-async function tambahBlok(habitId, menitUTC) {
+// payload = { habitId } untuk habit, atau { nama } untuk kegiatan manual.
+async function tambahBlok(payload, menitUTC) {
   const arr = await ambilJadwal();
-  arr.push({ id: "blok-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), habitId, menitUTC });
+  const blok = { id: "blok-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), menitUTC };
+  if (payload && payload.habitId) blok.habitId = payload.habitId;
+  else if (payload && payload.nama) blok.nama = payload.nama;
+  arr.push(blok);
   await simpanJadwal(arr);
 }
 async function hapusBlok(id) {
@@ -98,11 +115,10 @@ function svgJam(blok, map) {
   for (const b of blok) {
     const mLokal = menitLokalBlok(b);
     if ((mLokal < 720 ? "pagi" : "malam") !== paruh) continue;   // hanya blok di paruh aktif
-    const h = map[b.habitId];
-    const warna = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
+    const warna = warnaBlok(b, map);
     const [x, y] = titikJam12(JAM_R, mLokal % 720);
     dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
-      + `<title>${menitKeTeks(mLokal)} — ${escTeks(h ? h.nama : "(terhapus)")}</title></circle>`;
+      + `<title>${menitKeTeks(mLokal)} — ${escTeks(namaBlok(b, map))}</title></circle>`;
   }
 
   const now = menitSekarang();
@@ -177,19 +193,17 @@ async function renderJadwal() {
     list.appendChild(p);
   } else {
     for (const b of blok) {
-      const h = map[b.habitId];
       const row = document.createElement("div");
       row.className = "jadwal-row";
       const dot = document.createElement("span");
       dot.className = "jadwal-dot";
-      dot.style.background = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
+      dot.style.background = warnaBlok(b, map);
       const waktu = document.createElement("span");
       waktu.className = "jadwal-waktu";
       waktu.textContent = menitKeTeks(menitLokalBlok(b));      // ← waktu device
       const nama = document.createElement("span");
       nama.className = "jadwal-nama";
-      nama.textContent = h ? h.nama : "(habit terhapus)";
-      const del = document.createElement("button");
+      nama.textContent = namaBlok(b, map);      const del = document.createElement("button");
       del.className = "tombol jadwal-hapus";
       del.textContent = "✕";
       del.title = "Hapus blok";
@@ -211,17 +225,25 @@ async function renderJadwal() {
   sel.className = "modal-input";
   const aktif = Object.values(map).filter((h) => h.aktif)
     .sort((a, b) => (a.nama || "").localeCompare(b.nama || ""));
-  if (aktif.length === 0) {
-    const opt = document.createElement("option");
-    opt.textContent = "(tidak ada habit aktif)";
-    sel.appendChild(opt);
-  }
   for (const h of aktif) {
     const opt = document.createElement("option");
     opt.value = h.id;
     opt.textContent = h.nama;
     sel.appendChild(opt);
   }
+  const optManual = document.createElement("option");
+  optManual.value = "__manual__";
+  optManual.textContent = "✏️ Kegiatan manual…";
+  sel.appendChild(optManual);
+
+  // Nama untuk kegiatan manual (mis. Tidur, Kursus Python) — muncul saat opsi manual dipilih.
+  const namaManual = document.createElement("input");
+  namaManual.type = "text";
+  namaManual.className = "modal-input";
+  namaManual.placeholder = "Nama kegiatan (mis. Tidur, Kursus Python)";
+  const sinkronManual = () => { namaManual.style.display = sel.value === "__manual__" ? "" : "none"; };
+  sel.addEventListener("change", sinkronManual);
+  sinkronManual();
 
   const time = document.createElement("input");
   time.type = "time";
@@ -232,14 +254,23 @@ async function renderJadwal() {
   btn.className = "tombol tombol-utama";
   btn.textContent = "+ Blok";
   btn.addEventListener("click", async () => {
-    if (!sel.value) { alert("Pilih habit dulu."); return; }
     const [jj, mm] = (time.value || "").split(":").map(Number);
     if (Number.isNaN(jj) || Number.isNaN(mm)) { alert("Waktu tidak valid."); return; }
-    await tambahBlok(sel.value, lokalKeUTC(jj * 60 + mm));    // ← wall-clock WIB → UTC
+    let payload;
+    if (sel.value === "__manual__") {
+      const nama = namaManual.value.trim();
+      if (!nama) { alert("Isi nama kegiatannya dulu."); return; }
+      payload = { nama };
+    } else {
+      if (!sel.value) { alert("Pilih habit atau kegiatan manual."); return; }
+      payload = { habitId: sel.value };
+    }
+    await tambahBlok(payload, lokalKeUTC(jj * 60 + mm));    // ← wall-clock WIB → UTC
+    if (sel.value === "__manual__") namaManual.value = "";
     await refreshJadwal();
   });
 
-  form.append(sel, time, btn);
+  form.append(sel, namaManual, time, btn);
   formCard.appendChild(form);
   side.appendChild(formCard);
 
@@ -273,7 +304,6 @@ async function renderJadwalMobile() {
   const ul = document.createElement("ul");
   ul.className = "jadwal-mlist";
   for (const b of blok) {
-    const h = map[b.habitId];
     const li = document.createElement("li");
     li.className = "jadwal-mrow";
     const t = document.createElement("span");
@@ -281,11 +311,10 @@ async function renderJadwalMobile() {
     t.textContent = menitKeTeks(menitLokalBlok(b));            // ← waktu device (WITA/WIT/WIB)
     const dot = document.createElement("span");
     dot.className = "jadwal-dot";
-    dot.style.background = WARNA_RARITY[h && h.rarity] || WARNA_RARITY.common;
+    dot.style.background = warnaBlok(b, map);
     const nama = document.createElement("span");
     nama.className = "jadwal-mnama";
-    nama.textContent = h ? h.nama : "(habit terhapus)";
-    li.append(t, dot, nama);
+    nama.textContent = namaBlok(b, map);    li.append(t, dot, nama);
     ul.appendChild(li);
   }
   el.appendChild(ul);
