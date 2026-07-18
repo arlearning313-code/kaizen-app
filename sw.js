@@ -1,4 +1,4 @@
-const NAMA_CACHE = "kaizen-v33"
+const NAMA_CACHE = "kaizen-v34"
 const FILE_INTI = ["./", "./index.html", "./manifest.json", "./css/styles.css", "./img/kaizen-logo-icon-192.png", "./img/kaizen-logo-icon-512.png", "./img/japan-hero.jpg", "./fonts/Fraunces-standard.woff2", "./fonts/Newsreader-standard.woff2", "./js/db.js", "./js/config.js", "./js/ui.js", "./js/skor.js", "./js/sync.js", "./js/character.js", "./js/dashboard.js", "./js/manager.js", "./js/settings.js", "./js/navigasi.js", "./js/karakter-ui.js", "./js/fx.js", "./js/cover.js", "./js/jadwal.js"]
 
 self.addEventListener("install", (event) => {

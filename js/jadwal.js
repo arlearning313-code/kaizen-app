@@ -1,8 +1,10 @@
-// js/jadwal.js — Tab "Jadwal Harian": tempatkan habit di jam berapa (format 24 jam).
+// js/jadwal.js — Tab "Jadwal Harian": tempatkan habit / kegiatan di jam berapa.
 //  • Atur/set: DESKTOP saja (jam melingkar + panel Rencana + form).
 //  • Lihat hasil: DESKTOP (jam melingkar) & MOBILE (daftar vertikal, read-only).
-//  • Data: 1 record di store "settings" (key "jadwal") → array blok {id, habitId, menit}.
-//    menit = menit sejak tengah malam (0..1439). Tidak mengubah skema habit.
+//  • Data: 1 record di store "settings" (key "jadwal") → array blok.
+//    Tiap blok: { id, menitUTC, menitAkhirUTC?, habitId? | nama? }
+//    menitUTC = menit-mulai (0..1439). menitAkhirUTC (opsional) = menit-selesai
+//    → blok jadi RENTANG (mis. Tidur 00.00–05.00). Tanpa menitAkhirUTC = satu titik.
 
 // Warna titik: habit diwarnai per kategori; kegiatan manual pakai warna netral.
 const WARNA_KATEGORI = {
@@ -29,9 +31,11 @@ async function simpanJadwal(arr) {
   await simpan("settings", { key: "jadwal", value: arr, diubah: Date.now() });
 }
 // payload = { habitId } untuk habit, atau { nama } untuk kegiatan manual.
-async function tambahBlok(payload, menitUTC) {
+// menitAkhirUTC = null → blok satu titik; angka → blok rentang (mulai→selesai).
+async function tambahBlok(payload, menitUTC, menitAkhirUTC = null) {
   const arr = await ambilJadwal();
   const blok = { id: "blok-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), menitUTC };
+  if (typeof menitAkhirUTC === "number") blok.menitAkhirUTC = menitAkhirUTC;
   if (payload && payload.habitId) blok.habitId = payload.habitId;
   else if (payload && payload.nama) blok.nama = payload.nama;
   arr.push(blok);
@@ -45,12 +49,23 @@ async function hapusBlok(id) {
 // Blok disimpan sebagai "menit UTC dalam sehari" (0..1439). Tiap device
 // menampilkannya sesuai timezone-nya (WIB/WITA/WIT). Indonesia tanpa DST.
 function offsetMenit() { return new Date().getTimezoneOffset(); }        // UTC − lokal (WIB = −420)
+function menitLokalDari(menitUTC) { return (menitUTC - offsetMenit() + 1440) % 1440; }
 function menitLokalBlok(b) {
-  if (typeof b.menitUTC === "number") return (b.menitUTC - offsetMenit() + 1440) % 1440;
+  if (typeof b.menitUTC === "number") return menitLokalDari(b.menitUTC);
   if (typeof b.menit === "number") return b.menit;   // blok lama (wall-clock) → tampil apa adanya
   return 0;
 }
+function menitLokalAkhirBlok(b) {
+  if (typeof b.menitAkhirUTC === "number") return menitLokalDari(b.menitAkhirUTC);
+  return null;                                         // tanpa selesai → blok satu titik
+}
 function lokalKeUTC(menitLokal) { return (menitLokal + offsetMenit() + 1440) % 1440; }
+
+// Teks rentang untuk daftar: "00.00 – 05.00" atau satu titik "08.00".
+function rentangTeks(b) {
+  const s = menitLokalBlok(b), e = menitLokalAkhirBlok(b);
+  return e === null ? menitKeTeks(s) : `${menitKeTeks(s)} – ${menitKeTeks(e)}`;
+}
 
 // Migrasi sekali: blok lama (.menit) → .menitUTC memakai offset device ini.
 // Dipanggil di path DESKTOP saja (tempat Anda mengatur; device Anda WIB).
@@ -96,9 +111,27 @@ function titikJam12(r, mInHalf) {
   return [JAM_CX + r * Math.sin(th), JAM_CY - r * Math.cos(th)];
 }
 
+// Pecah rentang [startL,endL) jadi segmen dalam [0,1440), menangani lewat tengah malam.
+function segmenBlok(startL, endL) {
+  let e = endL;
+  if (e <= startL) e += 1440;                          // rentang lewat tengah malam
+  if (e - startL > 1439) e = startL + 1439;            // jaga-jaga: maksimal < 24 jam
+  if (e <= 1440) return [[startL, e]];
+  return [[startL, 1440], [0, e - 1440]];              // tersebar di dua hari
+}
+
+// Path busur pada muka 12 jam dari mStart→mEnd (0..720), searah jarum jam.
+function busurPath(r, mStart, mEnd) {
+  const [x1, y1] = titikJam12(r, mStart);
+  const [x2, y2] = titikJam12(r, mEnd);
+  const largeArc = (mEnd - mStart) > 360 ? 1 : 0;
+  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${largeArc} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+}
+
 function svgJam(blok, map) {
   const paruh = _paruh || (_paruh = paruhSekarang());
   const basisJam = paruh === "malam" ? 12 : 0;          // label 00–11 atau 12–23
+  const h0 = paruh === "malam" ? 720 : 0, h1 = h0 + 720;
 
   let ticks = "", labels = "";
   for (let hh = 0; hh < 12; hh++) {
@@ -111,14 +144,36 @@ function svgJam(blok, map) {
     labels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="jam-label${mayor ? " mayor" : ""}" text-anchor="middle" dominant-baseline="central">${jmDua(hh + basisJam)}</text>`;
   }
 
-  let dots = "";
+  let arcs = "", dots = "";
   for (const b of blok) {
-    const mLokal = menitLokalBlok(b);
-    if ((mLokal < 720 ? "pagi" : "malam") !== paruh) continue;   // hanya blok di paruh aktif
+    const startL = menitLokalBlok(b);
+    const endL = menitLokalAkhirBlok(b);
     const warna = warnaBlok(b, map);
-    const [x, y] = titikJam12(JAM_R, mLokal % 720);
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
-      + `<title>${menitKeTeks(mLokal)} — ${escTeks(namaBlok(b, map))}</title></circle>`;
+    const label = escTeks(namaBlok(b, map));
+
+    if (endL === null) {
+      // Blok satu titik — hanya tampil di paruh tempat ia berada.
+      if ((startL < 720 ? "pagi" : "malam") !== paruh) continue;
+      const [x, y] = titikJam12(JAM_R, startL % 720);
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
+        + `<title>${menitKeTeks(startL)} — ${label}</title></circle>`;
+      continue;
+    }
+
+    // Blok rentang — gambar busur, dipotong ke paruh yang sedang tampil.
+    for (const [s, e] of segmenBlok(startL, endL)) {
+      const cs = Math.max(s, h0), ce = Math.min(e, h1);
+      if (ce - cs < 1) continue;                         // tak beririsan dengan paruh ini
+      let mStart = cs - h0, mEnd = ce - h0;              // 0..720
+      if (mEnd - mStart > 719) mEnd = mStart + 719;
+      arcs += `<path d="${busurPath(JAM_R, mStart, mEnd)}" fill="none" stroke="${warna}" stroke-width="9" `
+        + `stroke-linecap="round" opacity="0.8"><title>${rentangTeks(b)} — ${label}</title></path>`;
+    }
+    // Titik penanda di jam mulai (bila mulainya ada di paruh ini).
+    if (startL >= h0 && startL < h1) {
+      const [dx, dy] = titikJam12(JAM_R, startL - h0);
+      dots += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="4.5" fill="${warna}" stroke="#0d1230" stroke-width="2"/>`;
+    }
   }
 
   const now = menitSekarang();
@@ -129,7 +184,7 @@ function svgJam(blok, map) {
   return `
     <svg viewBox="0 0 360 360" class="jam-svg" role="img" aria-label="Jam ${paruh}">
       <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_R}" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="14"/>
-      ${ticks}${labels}${dots}
+      ${arcs}${ticks}${labels}${dots}
       <line id="jam-jarum" class="jam-jarum" style="opacity:${cocok ? 1 : .28}" x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"/>
       <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_HUB}" fill="rgba(8,11,32,.85)" stroke="rgba(255,255,255,.08)"/>
       <circle class="jam-pusat" cx="${JAM_CX}" cy="${JAM_CY}" r="5"/>
@@ -200,10 +255,11 @@ async function renderJadwal() {
       dot.style.background = warnaBlok(b, map);
       const waktu = document.createElement("span");
       waktu.className = "jadwal-waktu";
-      waktu.textContent = menitKeTeks(menitLokalBlok(b));      // ← waktu device
+      waktu.textContent = rentangTeks(b);                      // ← waktu device (rentang / titik)
       const nama = document.createElement("span");
       nama.className = "jadwal-nama";
-      nama.textContent = namaBlok(b, map);      const del = document.createElement("button");
+      nama.textContent = namaBlok(b, map);
+      const del = document.createElement("button");
       del.className = "tombol jadwal-hapus";
       del.textContent = "✕";
       del.title = "Hapus blok";
@@ -245,17 +301,33 @@ async function renderJadwal() {
   sel.addEventListener("change", sinkronManual);
   sinkronManual();
 
-  const time = document.createElement("input");
-  time.type = "time";
-  time.className = "modal-input";
-  time.value = "08:00";
+  // Waktu: Mulai (wajib) + Selesai (opsional). Selesai kosong = satu titik.
+  const timeMulai = document.createElement("input");
+  timeMulai.type = "time"; timeMulai.className = "modal-input"; timeMulai.value = "08:00";
+  const labMulai = document.createElement("label");
+  labMulai.className = "jadwal-flabel"; labMulai.textContent = "Mulai";
+  labMulai.appendChild(timeMulai);
+
+  const timeSelesai = document.createElement("input");
+  timeSelesai.type = "time"; timeSelesai.className = "modal-input";
+  const labSelesai = document.createElement("label");
+  labSelesai.className = "jadwal-flabel"; labSelesai.textContent = "Selesai (opsional — kosongkan untuk satu titik)";
+  labSelesai.appendChild(timeSelesai);
 
   const btn = document.createElement("button");
   btn.className = "tombol tombol-utama";
   btn.textContent = "+ Blok";
   btn.addEventListener("click", async () => {
-    const [jj, mm] = (time.value || "").split(":").map(Number);
-    if (Number.isNaN(jj) || Number.isNaN(mm)) { alert("Waktu tidak valid."); return; }
+    const parse = (v) => {
+      const [jj, mm] = (v || "").split(":").map(Number);
+      return (Number.isNaN(jj) || Number.isNaN(mm)) ? null : jj * 60 + mm;
+    };
+    const mMulai = parse(timeMulai.value);
+    if (mMulai === null) { alert("Jam mulai tidak valid."); return; }
+    let mSelesai = timeSelesai.value ? parse(timeSelesai.value) : null;
+    if (timeSelesai.value && mSelesai === null) { alert("Jam selesai tidak valid."); return; }
+    if (mSelesai === mMulai) mSelesai = null;                 // 0 durasi → jadikan satu titik
+
     let payload;
     if (sel.value === "__manual__") {
       const nama = namaManual.value.trim();
@@ -265,12 +337,14 @@ async function renderJadwal() {
       if (!sel.value) { alert("Pilih habit atau kegiatan manual."); return; }
       payload = { habitId: sel.value };
     }
-    await tambahBlok(payload, lokalKeUTC(jj * 60 + mm));    // ← wall-clock WIB → UTC
+
+    const menitAkhirUTC = mSelesai === null ? null : lokalKeUTC(mSelesai);
+    await tambahBlok(payload, lokalKeUTC(mMulai), menitAkhirUTC);   // ← wall-clock WIB → UTC
     if (sel.value === "__manual__") namaManual.value = "";
     await refreshJadwal();
   });
 
-  form.append(sel, namaManual, time, btn);
+  form.append(sel, namaManual, labMulai, labSelesai, btn);
   formCard.appendChild(form);
   side.appendChild(formCard);
 
@@ -308,13 +382,14 @@ async function renderJadwalMobile() {
     li.className = "jadwal-mrow";
     const t = document.createElement("span");
     t.className = "jadwal-mwaktu";
-    t.textContent = menitKeTeks(menitLokalBlok(b));            // ← waktu device (WITA/WIT/WIB)
+    t.textContent = rentangTeks(b);                           // ← waktu device (rentang / titik)
     const dot = document.createElement("span");
     dot.className = "jadwal-dot";
     dot.style.background = warnaBlok(b, map);
     const nama = document.createElement("span");
     nama.className = "jadwal-mnama";
-    nama.textContent = namaBlok(b, map);    li.append(t, dot, nama);
+    nama.textContent = namaBlok(b, map);
+    li.append(t, dot, nama);
     ul.appendChild(li);
   }
   el.appendChild(ul);
