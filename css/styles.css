@@ -22,8 +22,7 @@ body {
 
 .daftar { list-style: none; margin: 0; padding: 0; }
 .baris {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 14px; margin-bottom: 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;  padding: 16px 14px; margin-bottom: 10px;
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 14px; cursor: pointer; user-select: none;
   transition: transform .05s ease, border-color .15s ease;
@@ -760,3 +759,36 @@ body {
 .kesiapan-gap { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .kesiapan-gap b { color: var(--ink); font-weight: 600; }
 .baris-kosong { list-style: none; padding: 18px 4px; color: var(--muted); font-size: 14px; }
+
+/* ── Kartu Alasan (pengingat malam) ──────────────────────────────── */
+.kartu-alasan {
+  flex: 0 0 100%; cursor: default;
+  margin-top: 2px; padding: 12px 14px;
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid var(--line); border-radius: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  animation: ka-masuk .3s ease;
+}
+@keyframes ka-masuk {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ka-blok {
+  border-left: 3px solid; border-radius: 0 10px 10px 0;
+  padding: 8px 12px; font-size: 14px; line-height: 1.5;
+}
+.ka-lbl {
+  display: block; font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; margin-bottom: 3px;
+}
+.ka-diam   { border-left-color: var(--torii); background: rgba(214, 69, 69, .09); color: #d9c6c6; }
+.ka-lakuin { border-left-color: var(--gold);  background: rgba(232, 176, 75, .09); color: #efe4c9; }
+.ka-diam   .ka-lbl { color: var(--torii-terang); }
+.ka-lakuin .ka-lbl { color: var(--gold); }
+.ka-mantra { text-align: center; font-style: italic; font-size: 13px; color: var(--ink); }
+.ka-lakukan {
+  align-self: flex-end; background: var(--gold); color: var(--bg);
+  border: none; border-radius: 20px; padding: 8px 16px;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+}
+.ka-lakukan:hover { opacity: .9; }

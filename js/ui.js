@@ -17,6 +17,52 @@ function formatTanggal(d) {
   return `${y}-${b}-${t}`;
 }
 
+// Jam (0–23) mulai memunculkan kartu pengingat untuk habit yang belum dicentang.
+const JAM_PENGINGAT = 18;
+
+// Apakah habit punya alasan yang bisa ditampilkan?
+function adaAlasan(h) {
+  const a = h.alasan || {};
+  return !!(a.diam || a.lakuin || a.mantra);
+}
+
+// Bangun kartu alasan (pengingat) untuk satu habit.
+function kartuAlasan(h, tanggal) {
+  const a = h.alasan || {};
+  const card = document.createElement("div");
+  card.className = "kartu-alasan";
+  card.addEventListener("click", (e) => e.stopPropagation());
+
+  if (a.diam) {
+    const b = document.createElement("div");
+    b.className = "ka-blok ka-diam";
+    b.innerHTML = '<span class="ka-lbl">Kalau aku diam</span>';
+    b.appendChild(document.createTextNode(a.diam));
+    card.appendChild(b);
+  }
+  if (a.lakuin) {
+    const b = document.createElement("div");
+    b.className = "ka-blok ka-lakuin";
+    b.innerHTML = '<span class="ka-lbl">Kalau aku lakuin — jadi siapa aku</span>';
+    b.appendChild(document.createTextNode(a.lakuin));
+    card.appendChild(b);
+  }
+  if (a.mantra) {
+    const m = document.createElement("div");
+    m.className = "ka-mantra";
+    m.textContent = '"' + a.mantra + '"';
+    card.appendChild(m);
+  }
+
+  const btn = document.createElement("button");
+  btn.className = "ka-lakukan";
+  btn.textContent = "Lakukan sekarang ✓";
+  btn.addEventListener("click", (e) => { e.stopPropagation(); toggleHabit(h, tanggal); });
+  card.appendChild(btn);
+
+  return card;
+}
+
 // Saring habit AKTIF yang jatuh tempo pada satu tanggal, sesuai frekuensinya.
 async function habitHariIni(tanggal) {
   const semua = await ambilSemua("habits");
@@ -89,6 +135,12 @@ async function tampilkanChecklist() {
 
     li.append(kotak, nama);
     li.addEventListener("click", () => toggleHabit(h, tanggal));
+
+    const jam = new Date().getHours();
+    if (!sudah && jam >= JAM_PENGINGAT && adaAlasan(h)) {
+      li.appendChild(kartuAlasan(h, tanggal));
+    }
+
     daftar.appendChild(li);
   }
 
