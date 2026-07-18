@@ -130,7 +130,7 @@ function bukaEditorHabit(habit) {
   const baru = !habit;
   const h = habit
     ? JSON.parse(JSON.stringify(habit))
-    : { id: "", nama: "", kategori: "Lainnya", frekuensi: { tipe: "harian", detil: "" }, catatan: "", aktif: true, diubah: 0 };
+    : { id: "", nama: "", kategori: "Lainnya", frekuensi: { tipe: "harian", detil: "" }, catatan: "", alasan: { diam: "", lakuin: "", mantra: "" }, aktif: true, diubah: 0 };
   if (!h.frekuensi) h.frekuensi = { tipe: "harian" };
 
   const overlay = document.createElement("div");
@@ -164,8 +164,15 @@ function bukaEditorHabit(habit) {
     <label class="modal-label">Takaran (opsional)
       <input class="modal-input" id="f-detil" value="${escAttr(h.frekuensi?.detil||"")}" placeholder='mis. "30 menit", "3 push up"'>
     </label>
-    <label class="modal-label">Catatan / alasan (opsional)
-      <textarea class="modal-input" id="f-catatan" rows="2" placeholder="Kenapa habit ini penting buatmu?">${escAttr(h.catatan||"")}</textarea>
+    <div class="modal-sub">Kenapa ini penting? (muncul jadi pengingat pas kamu belum ngerjain)</div>
+    <label class="modal-label">Kalau aku diam — rasa sakit yang sudah kurasakan
+      <textarea class="modal-input" id="f-diam" rows="2" placeholder="mis. Otakku busuk karena doomscrolling, susah fokus.">${escAttr(h.alasan?.diam || "")}</textarea>
+    </label>
+    <label class="modal-label">Kalau aku lakuin — jadi siapa aku
+      <textarea class="modal-input" id="f-lakuin" rows="2" placeholder="mis. Otak yang tajam lagi, bisa fokus lama, mikir runut.">${escAttr(h.alasan?.lakuin || "")}</textarea>
+    </label>
+    <label class="modal-label">Mantra — satu kalimat pendek
+      <input class="modal-input" id="f-mantra" value="${escAttr(h.alasan?.mantra || "")}" placeholder="mis. Tiap teka-teki adalah push-up buat otakku.">
     </label>
 
     <div class="modal-aksi">
@@ -194,7 +201,12 @@ function bukaEditorHabit(habit) {
       id: baru ? await idBerikutnya() : h.id,
       nama: val("#f-nama"),
       kategori: modal.querySelector("#f-kategori").value,
-      catatan: val("#f-catatan"),
+      catatan: h.catatan || "",
+      alasan: {
+        diam: val("#f-diam"),
+        lakuin: val("#f-lakuin"),
+        mantra: val("#f-mantra"),
+      },
       aktif: baru ? true : !!h.aktif,
       diubah: Date.now(),
     };
