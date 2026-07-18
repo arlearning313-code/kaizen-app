@@ -132,9 +132,10 @@ async function toggleSesiQuest(q, tanggal) {
     await hapus("questLogs", id);
   } else {
     await simpan("questLogs", { id, questId: q.id, date: tanggal, diubah: Date.now() });
-    if (typeof fxHabitSelesai === "function") fxHabitSelesai(q);
+    if (typeof fxHabitSelesai === "function") fxHabitSelesai(q, q.warna);
   }
   await renderQuest();
+  if (typeof renderQuestMobile === "function") await renderQuestMobile();
 }
 
 function bukaEditorQuest(quest) {
@@ -202,4 +203,46 @@ async function hapusQuest(id) {
   const logs = await ambilSemua("questLogs");
   for (const l of logs) if (l.questId === id) await hapus("questLogs", l.id);
   await renderQuest();
+}
+
+// Versi HP: quest hari ini tampil di dalam .app (di bawah checklist habit).
+async function renderQuestMobile() {
+  const el = document.getElementById("quest-mobile-list");
+  if (!el) return;
+  el.innerHTML = "";
+
+  const quests = (await ambilSemua("quests")).sort((a, b) => (a.id > b.id ? 1 : -1));
+  if (quests.length === 0) return; // tak ada quest → bagian ini kosong
+
+  const logs = await ambilSemua("questLogs");
+  const tanggal = tanggalHariIni();
+
+  const judul = document.createElement("h2");
+  judul.className = "quest-m-judul";
+  judul.textContent = "Quest hari ini";
+  el.appendChild(judul);
+
+  const ul = document.createElement("ul");
+  ul.className = "daftar";
+  for (const q of quests) {
+    const sesi = logs.filter((l) => l.questId === q.id).length;
+    const sudah = logs.some((l) => l.id === `${tanggal}_${q.id}`);
+
+    const li = document.createElement("li");
+    li.className = "baris" + (sudah ? " selesai" : "");
+
+    const kotak = document.createElement("span");
+    kotak.className = "kotak" + (sudah ? " on" : "");
+    const nama = document.createElement("span");
+    nama.className = "nama";
+    nama.textContent = `${q.ikon || "⚔️"} ${q.nama}`;
+    const stat = document.createElement("span");
+    stat.className = "qt-m-stat";
+    stat.textContent = `${sesi} sesi`;
+
+    li.append(kotak, nama, stat);
+    li.addEventListener("click", () => toggleSesiQuest(q, tanggal));
+    ul.appendChild(li);
+  }
+  el.appendChild(ul);
 }

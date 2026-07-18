@@ -25,8 +25,9 @@ function fxBurst(x, y, warna, jumlah = 12) {
 }
 
 // Dipanggil dari toggleHabit saat sebuah habit BARU jadi selesai.
-function fxHabitSelesai(habit) {
-  const warna = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e8b04b";
+function fxHabitSelesai(habit, warna) {
+  const c = (warna && warna.trim()) ||
+    getComputedStyle(document.documentElement).getPropertyValue("--gold").trim() || "#e8b04b";
   const { x, y } = fxPointer;
-  fxBurst(x, y, warna);
+  fxBurst(x, y, c);
 }

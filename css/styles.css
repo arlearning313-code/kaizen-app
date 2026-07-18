@@ -822,3 +822,9 @@ body {
 }
 .qt-go:hover { opacity: .9; }
 .qt-go.done { background: transparent; color: var(--qt-warna); border: 1px solid var(--qt-warna); }
+
+/* Quest — versi HP (di dalam .app) */
+.quest-m-judul { font-size: 18px; color: #fff; margin: 28px 0 12px; }
+#quest-mobile-list .nama { flex: 1; min-width: 0; }
+.qt-m-stat { margin-left: auto; flex: 0 0 auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+@media (min-width: 900px) { .quest-m { display: none; } }

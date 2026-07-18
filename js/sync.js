@@ -13,6 +13,8 @@ async function ekspor() {
     journal: await ambilSemua("journal"),
     character: await ambilSemua("character"),
     settings: await ambilSemua("settings"),
+    quests: await ambilSemua("quests"),
+    questLogs: await ambilSemua("questLogs"),
   };
 
   const teks = JSON.stringify(data, null, 2);
@@ -62,8 +64,7 @@ async function impor(teks) {
     return;
   }
 
-  const stores = ["habits", "logs", "journal", "character", "settings"];
-
+  const stores = ["habits", "logs", "journal", "character", "settings", "quests", "questLogs"];
   const gantiTotal = confirm(
     "Impor data backup — pilih mode:\n\n" +
     "• OK = GANTI TOTAL (restore). Semua data di perangkat ini DIGANTI dengan isi file — " +

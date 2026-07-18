@@ -65,6 +65,7 @@
       </header>
       <ul id="daftar-habit" class="daftar"></ul>
       <p id="ringkasan" class="ringkasan"></p>
+      <section id="quest-mobile-list" class="quest-m"></section>
       <section id="jadwal-mobile" class="jadwal-mobile"></section>
 
       <footer class="app-footer">
@@ -97,7 +98,8 @@
         .then(() => renderQuest())
         .then(() => renderSidebarKarakter())
         .then(() => renderJadwal())
-        .then(() => renderJadwalMobile());
+        .then(() => renderJadwalMobile())
+        .then(() => renderQuestMobile());
       pasangTombolSync();
       pasangTombolSetelan();
       pasangNavigasi();
