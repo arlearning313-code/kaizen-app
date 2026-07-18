@@ -2,8 +2,8 @@
 // dikerjakan 30–60 menit/hari. Centang sesi → akumulasi sesi & jam tumbuh.
 
 const WARNA_QUEST = [
-  ["#e8b04b", "Emas"], ["#f06a5a", "Merah"], ["#7fd1c4", "Teal"],
-  ["#5aa9e6", "Biru"], ["#b57ee6", "Ungu"], ["#e79fb0", "Merah muda"],
+  ["#e8b04b", "Emas"], ["#f0c650", "Emas terang"], ["#c98a3a", "Emas tua"],
+  ["#f06a5a", "Merah terang"], ["#d64545", "Merah"], ["#8c8c8c", "Abu"],
 ];
 
 // ID otomatis: Q-01, Q-02, …

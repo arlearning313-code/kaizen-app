@@ -1,9 +1,8 @@
 // settings.js — MODUL 12: Setelan & tema. Satu variabel --gold mengubah seluruh aksen.
 
 const DAFTAR_TEMA = [
-  { id: "default", nama: "Emas",   warna: "#e8b04b" },
-  { id: "sakura",  nama: "Sakura", warna: "#e79fb0" },
-  { id: "teal",    nama: "Teal",   warna: "#7fd1c4" },
+  { id: "default", nama: "Emas",  warna: "#e8b04b" },
+  { id: "merah",   nama: "Merah", warna: "#d64545" },
 ];
 
 // Pembungkus store "settings" (keyPath "key").

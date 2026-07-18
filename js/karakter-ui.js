@@ -4,9 +4,9 @@
 const STAGE_VISUAL = {
   1: { kanji: "忍", nama: "Survival",      c1: "#e0574a", c2: "#7a1f18" },
   2: { kanji: "定", nama: "Stabilization", c1: "#e0a23a", c2: "#7a5410" },
-  3: { kanji: "育", nama: "Growth",        c1: "#4fb286", c2: "#155140" },
-  4: { kanji: "拓", nama: "Expansion",     c1: "#4a90d9", c2: "#173e66" },
-  5: { kanji: "立", nama: "Independence",  c1: "#8b6fd6", c2: "#382a63" },
+  3: { kanji: "育", nama: "Growth",        c1: "#cf9a3a", c2: "#5a3e10" },
+  4: { kanji: "拓", nama: "Expansion",     c1: "#e0873a", c2: "#5a3410" },
+  5: { kanji: "立", nama: "Independence",  c1: "#d66a45", c2: "#5a2717" },
   6: { kanji: "旅", nama: "Japan Ready",   c1: "#d64545", c2: "#6e1717" },
   7: { kanji: "夢", nama: "Dream",         c1: "#f0c650", c2: "#8a6410" },
 };

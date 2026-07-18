@@ -8,11 +8,11 @@
 
 // Warna titik: habit diwarnai per kategori; kegiatan manual pakai warna netral.
 const WARNA_KATEGORI = {
-  "Anti-Corrupt": "#e0574a", "Karier": "#4a90d9", "Fisik": "#4fb286",
-  "Spiritual": "#e8b04b", "Mental": "#b57ee6", "Sosial": "#5aa9e6",
-  "Emosional": "#e79fb0", "Lainnya": "#8f8db0",
+  "Anti-Corrupt": "#d64545", "Karier": "#e8b04b", "Fisik": "#e0873a",
+  "Spiritual": "#f0c650", "Mental": "#c98a3a", "Sosial": "#f06a5a",
+  "Emosional": "#e0644a", "Lainnya": "#948e84",
 };
-const WARNA_MANUAL = "#9aa5b1";
+const WARNA_MANUAL = "#948e84";
 function warnaBlok(b, map) {
   if (b.habitId) { const h = map[b.habitId]; return (h && WARNA_KATEGORI[h.kategori]) || WARNA_KATEGORI["Lainnya"]; }
   return WARNA_MANUAL;
@@ -155,7 +155,7 @@ function svgJam(blok, map) {
       // Blok satu titik — hanya tampil di paruh tempat ia berada.
       if ((startL < 720 ? "pagi" : "malam") !== paruh) continue;
       const [x, y] = titikJam12(JAM_R, startL % 720);
-      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0d1230" stroke-width="2">`
+      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="${warna}" stroke="#0a0a0a" stroke-width="2">`
         + `<title>${menitKeTeks(startL)} — ${label}</title></circle>`;
       continue;
     }
@@ -172,7 +172,7 @@ function svgJam(blok, map) {
     // Titik penanda di jam mulai (bila mulainya ada di paruh ini).
     if (startL >= h0 && startL < h1) {
       const [dx, dy] = titikJam12(JAM_R, startL - h0);
-      dots += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="4.5" fill="${warna}" stroke="#0d1230" stroke-width="2"/>`;
+      dots += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="4.5" fill="${warna}" stroke="#0a0a0a" stroke-width="2"/>`;
     }
   }
 
@@ -186,7 +186,7 @@ function svgJam(blok, map) {
       <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_R}" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="14"/>
       ${arcs}${ticks}${labels}${dots}
       <line id="jam-jarum" class="jam-jarum" style="opacity:${cocok ? 1 : .28}" x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"/>
-      <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_HUB}" fill="rgba(8,11,32,.85)" stroke="rgba(255,255,255,.08)"/>
+      <circle cx="${JAM_CX}" cy="${JAM_CY}" r="${JAM_HUB}" fill="rgba(0,0,0,.85)" stroke="rgba(255,255,255,.08)"/>
       <circle class="jam-pusat" cx="${JAM_CX}" cy="${JAM_CY}" r="5"/>
       <text id="jam-teks" class="jam-tengah" x="${JAM_CX}" y="${JAM_CY - 4}" text-anchor="middle">${menitKeTeks(now)}</text>
       <text class="jam-tengah-sub" x="${JAM_CX}" y="${JAM_CY + 18}" text-anchor="middle">${paruh === "malam" ? "MALAM" : "PAGI"}</text>

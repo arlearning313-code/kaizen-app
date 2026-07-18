@@ -1,9 +1,9 @@
 /* styles.css — tampilan dasar. Poles penuh (font Fraunces dll.) menyusul di Modul 12. */
 :root {
-  --bg: #0d1230;
-  --surface: #171e44;
+  --bg: #0a0a0a;
+  --surface: #1a1a1a;
   --ink: #ece8e0;
-  --muted: #8f8db0;
+  --muted: #948e84;
   --gold: #e8b04b;
   --line: rgba(255, 255, 255, 0.09);
 }
@@ -95,10 +95,10 @@ body {
 .tombol-utama { background: var(--gold); color: var(--bg); border-color: var(--gold); font-weight: 600; }
 .tombol-utama:hover { color: var(--bg); opacity: .9; }
 
-.baris.urgent { border-color: #e79fb0; }
+.baris.urgent { border-color: #d64545; }
 .badge-urgent {
-  margin-left: auto; font-size: 11px; color: #e79fb0;
-  border: 1px solid #e79fb0; border-radius: 20px; padding: 2px 8px; white-space: nowrap;
+  margin-left: auto; font-size: 11px; color: #d64545;
+  border: 1px solid #d64545; border-radius: 20px; padding: 2px 8px; white-space: nowrap;
 }
 
 .dashboard {
@@ -132,8 +132,7 @@ body {
 .dash-list li { font-size: 13px; color: var(--muted); padding: 5px 0; border-bottom: 1px solid var(--line); }
 
 /* Tema aksen — cukup timpa satu variabel, seluruh aplikasi ikut berubah */
-:root[data-tema="sakura"] { --gold: #e79fb0; }
-:root[data-tema="teal"]   { --gold: #7fd1c4; }
+:root[data-tema="merah"] { --gold: #d64545; }
 
 .tema-pilih { display: flex; gap: 12px; margin-bottom: 8px; }
 .tema-swatch {
@@ -180,7 +179,7 @@ body {
 .switch input:checked + .slider { background: var(--gold); }
 .switch input:checked + .slider::before { transform: translateX(18px); }
 
-.dash-stage { font-size: 13px; color: #e79fb0; letter-spacing: .02em; margin: 2px 0; }
+.dash-stage { font-size: 13px; color: #f06a5a; letter-spacing: .02em; margin: 2px 0; }
 
 /* Main Quest (Modul 18) */
 .quest-list { display: flex; flex-direction: column; gap: 8px; }
@@ -216,7 +215,7 @@ body {
 :root {
   --torii: #d64545;          /* merah torii */
   --torii-terang: #f06a5a;
-  --sumi: #080b20;           /* tinta paling gelap */
+  --sumi: #000000;           /* tinta paling gelap */
   --sorot: rgba(214, 69, 69, .9);
 }
 
@@ -230,7 +229,7 @@ body {
     background:
       radial-gradient(1100px 560px at 12% -8%, rgba(232,176,75,.10), transparent 60%),
       radial-gradient(900px 520px at 112% 18%, rgba(214,69,69,.12), transparent 55%),
-      linear-gradient(160deg, var(--sumi), var(--bg) 55%, #10163a);
+      linear-gradient(160deg, var(--sumi), var(--bg) 55%, #0a0a0a);
   }
   body::after {
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .45;
@@ -272,7 +271,7 @@ body {
     height: 100vh; overflow: auto;
     display: flex; flex-direction: column;
     padding: 24px 16px;
-    background: linear-gradient(180deg, rgba(8,11,32,.94), rgba(13,18,48,.85));
+    background: linear-gradient(180deg, rgba(0,0,0,.94), rgba(14,14,14,.85));
     border-right: 1px solid var(--line);
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   }
@@ -401,7 +400,7 @@ body {
     position: relative; z-index: 1;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     width: 70%; height: 70%; border-radius: 50%;
-    background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--c1) 28%, #0b1030), #0a0e26 78%);
+    background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--c1) 28%, #0d0d0d), #080808 78%);
     border: 1px solid color-mix(in srgb, var(--c1) 45%, transparent);
     box-shadow: inset 0 0 20px rgba(0,0,0,.55);
   }
@@ -525,7 +524,7 @@ body {
 
   /* --- Sistem kartu: permukaan gradien + aksen garis atas --- */
   .dash-card, .manajer-baris, .quest-row {
-    background: linear-gradient(180deg, rgba(23,30,68,.92), rgba(15,20,48,.78));
+    background: linear-gradient(180deg, rgba(22,22,22,.92), rgba(14,14,14,.78));
     border-color: rgba(255,255,255,.10);
   }
   .dash-card { position: relative; overflow: hidden; }
@@ -557,9 +556,9 @@ body {
     border-radius: 3px; background: var(--rarity, transparent); box-shadow: 0 0 8px var(--rarity, transparent);
   }
   .app .baris[data-rarity=""]::after   { display: none; }
-  .app .baris[data-rarity="common"]    { --rarity: #8f8db0; }
-  .app .baris[data-rarity="rare"]      { --rarity: #5aa9e6; }
-  .app .baris[data-rarity="epic"]      { --rarity: #b57ee6; }
+  .app .baris[data-rarity="common"]    { --rarity: #8c8c8c; }
+  .app .baris[data-rarity="rare"]      { --rarity: #d67d3a; }
+  .app .baris[data-rarity="epic"]      { --rarity: #d64545; }
   .app .baris[data-rarity="legendary"] { --rarity: #e8b04b; }
 
   /* --- Header seksi & judul --- */
@@ -580,8 +579,8 @@ body {
     display: flex; align-items: center; padding: 56px 60px;
     border: 1px solid rgba(255,255,255,.10);
     background-image:
-      linear-gradient(105deg, rgba(8,11,32,.95) 0%, rgba(8,11,32,.72) 42%, rgba(8,11,32,.28) 100%),
-      linear-gradient(0deg, rgba(8,11,32,.85), transparent 55%),
+      linear-gradient(105deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.72) 42%, rgba(0,0,0,.28) 100%),
+      linear-gradient(0deg, rgba(0,0,0,.85), transparent 55%),
       url("../img/japan-hero.jpg");
     background-size: cover; background-position: center 35%;
     box-shadow: 0 24px 60px rgba(0,0,0,.45);
