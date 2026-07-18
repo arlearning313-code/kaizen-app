@@ -1,5 +1,4 @@
 // ui.js — MODUL 3: Checklist harian (jantung versi HP).
-// Menampilkan habit yang jatuh tempo hari ini & menyimpan centang ke store "logs".
 
 // Tanggal hari ini → "YYYY-MM-DD" (waktu lokal perangkat).
 function tanggalHariIni() {
@@ -10,55 +9,48 @@ function tanggalHariIni() {
   return `${y}-${b}-${t}`;
 }
 
+// Dipindahkan dari recovery.js — masih dipakai dashboard.js (heatmap/tren).
+function formatTanggal(d) {
+  const y = d.getFullYear();
+  const b = String(d.getMonth() + 1).padStart(2, "0");
+  const t = String(d.getDate()).padStart(2, "0");
+  return `${y}-${b}-${t}`;
+}
+
 // Saring habit AKTIF yang jatuh tempo pada satu tanggal, sesuai frekuensinya.
 async function habitHariIni(tanggal) {
   const semua = await ambilSemua("habits");
   const d = new Date(tanggal + "T00:00:00");
-  const hari = d.getDay();   // 0=Minggu, 1=Senin, ... 6=Sabtu
+  const hari = d.getDay();   // 0=Minggu … 6=Sabtu
   const tgl = d.getDate();   // 1..31
 
-  let hasil = semua.filter((h) => {
+  return semua.filter((h) => {
     if (!h.aktif) return false;
     const f = h.frekuensi || {};
     if (f.tipe === "harian") return true;
-    if (f.tipe === "opsional") return true;   // muncul tiap hari, tapi tak dihitung ke skor
-    if (f.tipe === "mingguan") return f.hari.includes(hari);
+    if (f.tipe === "opsional") return true;   // muncul tiap hari, tak dihitung ke skor
+    if (f.tipe === "mingguan") return Array.isArray(f.hari) && f.hari.includes(hari);
     if (f.tipe === "bulanan") return f.tanggal === tgl;
     return false;
   });
-
-  // Recovery Mode: sisakan hanya 3 habit Tier S termudah (XP terkecil).
-  const k = await ambil("character", "me");
-  if (k && k.recovery) {
-    hasil = hasil.filter((h) => h.tier === "S").sort((a, b) => a.xp - b.xp).slice(0, 3);
-  }
-  return hasil;
 }
 
 // Centang / batal-centang satu habit untuk satu tanggal.
 async function toggleHabit(habit, tanggal) {
-  const id = `${tanggal}_${habit.id}`;          // 1 catatan per habit per hari
+  const id = `${tanggal}_${habit.id}`;
   const logLama = await ambil("logs", id);
   const menjadiSelesai = !(logLama && logLama.status === "done");
 
   if (logLama && logLama.status === "done") {
-    await hapus("logs", id);                     // batal centang
+    await hapus("logs", id);
   } else {
     await simpan("logs", {
-      id,
-      habitId: habit.id,
-      date: tanggal,
-      status: "done",
-      nilai: null,
-      catatan: null,
-      diubah: Date.now(),                        // untuk last-write-wins (Modul 11)
+      id, habitId: habit.id, date: tanggal, status: "done",
+      nilai: null, catatan: null, diubah: Date.now(),
     });
   }
-    if (menjadiSelesai && typeof fxHabitSelesai === "function") fxHabitSelesai(habit);
-    await tampilkanChecklist();                    // gambar ulang layar
-    await cekAchievements();                        // buka trophy kalau ada yang terpenuhi
-    if (typeof cekNaikLevel === "function") await cekNaikLevel(); // naik level kalau XP cukup
-    if (typeof renderSidebarKarakter === "function") await renderSidebarKarakter();
+  if (menjadiSelesai && typeof fxHabitSelesai === "function") fxHabitSelesai(habit);
+  await tampilkanChecklist();
 }
 
 // Gambar seluruh checklist hari ini.
@@ -66,56 +58,40 @@ async function tampilkanChecklist() {
   const tanggal = tanggalHariIni();
   const habits = await habitHariIni(tanggal);
   const logs = await ambilPerTanggal(tanggal);
-  const selesai = new Set(
-    logs.filter((l) => l.status === "done").map((l) => l.habitId)
-  );
+  const selesai = new Set(logs.filter((l) => l.status === "done").map((l) => l.habitId));
 
-  // Tanggal di header (mis. "Minggu, 12 Juli 2026")
   document.getElementById("tanggal-hari-ini").textContent =
     new Date(tanggal + "T00:00:00").toLocaleDateString("id-ID", {
       weekday: "long", day: "numeric", month: "long", year: "numeric",
     });
 
-  // Daftar habit
   const daftar = document.getElementById("daftar-habit");
   daftar.innerHTML = "";
 
-  const terlewat = await habitTerlewatKemarin();
+  if (habits.length === 0) {
+    const li = document.createElement("li");
+    li.className = "baris-kosong";
+    li.textContent = "Belum ada habit. Tambahkan lewat Manajer Habit (desktop).";
+    daftar.appendChild(li);
+  }
 
   for (const h of habits) {
     const sudah = selesai.has(h.id);
-    const urgent = terlewat.has(h.id) && !sudah;
-
     const li = document.createElement("li");
     li.className = "baris" + (sudah ? " selesai" : "");
-    li.dataset.rarity = h.rarity || "";
 
     const kotak = document.createElement("span");
     kotak.className = "kotak" + (sudah ? " on" : "");
 
     const nama = document.createElement("span");
     nama.className = "nama";
-    const lvAktif = (typeof levelAktif === "function") ? levelAktif(h) : null;
-    if (lvAktif && lvAktif.target) {
-      nama.textContent = `${h.nama} · ${lvAktif.target}`;
-    } else if (h.kaizen) {
-      nama.textContent = `${h.nama} · ${h.kaizen.target} ${h.kaizen.satuan}`;
-    } else {
-      nama.textContent = h.nama;
-    }
+    nama.textContent = h.frekuensi?.detil ? `${h.nama} · ${h.frekuensi.detil}` : h.nama;
+
     li.append(kotak, nama);
-    if (urgent) {
-      li.classList.add("urgent");
-      const badge = document.createElement("span");
-      badge.className = "badge-urgent";
-      badge.textContent = "jangan 2×";
-      li.appendChild(badge);
-    }
     li.addEventListener("click", () => toggleHabit(h, tanggal));
     daftar.appendChild(li);
   }
 
-    // Baris ringkasan — pakai mesin skor Modul 4 (skor.js)
   const skor = await skorHari(tanggal);
   const ringkasan = document.getElementById("ringkasan");
   if (skor === null) {

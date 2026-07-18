@@ -1,50 +1,25 @@
-// manager.js — MODUL 15: Manajer Habit (khusus desktop).
-// CRUD habit + editor tangga level. Menulis langsung ke store "habits".
-// Prinsip dokumen: HP untuk MENJALANI, desktop untuk MENGATUR.
+// manager.js — MODUL 15 (dirombak): Manajer Habit (khusus desktop).
+// Field form mengikuti kartu habit di dokumen (Bab VI): Kategori, Frekuensi,
+// Tingkat Dampak, Tingkat Kesulitan, Tujuan, Masalah, Alasan Penting, Deskripsi.
+// Tak ada lagi Tier / Rarity / XP / tangga level.
 
-// ── Migrasi skema: habit lama (field "kaizen") → array "levels" ────────
-// Aman diulang: hanya menyentuh habit yang belum punya "levels".
-async function migrasiHabits() {
-  const habits = await ambilSemua("habits");
-  let diubah = 0;
-  for (const h of habits) {
-    if (Array.isArray(h.levels)) continue;          // sudah skema baru → lewati
-    if (h.kaizen) {
-      // habit ber-tangga lama → jadikan 1 level dari target sekarang
-      h.levels = [{
-        level: 1,
-        milestone: "Level 1",
-        target: `${h.kaizen.target} ${h.kaizen.satuan}`,
-        nilai: h.kaizen.target,
-        satuan: h.kaizen.satuan,
-      }];
-      h.levelSekarang = h.kaizen.level || 1;
-    } else {
-      // habit ya/tidak → 1 level tanpa angka (checklist tampilkan nama saja)
-      h.levels = [{ level: 1, milestone: "", target: "", nilai: null, satuan: "" }];
-      h.levelSekarang = 1;
-    }
-    delete h.kaizen;                                 // buang field lama
-    h.diubah = Date.now();
-    await simpan("habits", h);
-    diubah++;
-  }
-  if (diubah) console.log(`Migrasi: ${diubah} habit mendapat "levels".`);
-  return diubah;
-}
+const DAMPAK = ["Sangat Tinggi", "Tinggi", "Sedang", "Rendah-Sedang", "Rendah"];
+const KESULITAN = ["Sangat Sulit", "Sedang-Sulit", "Sedang", "Mudah-Sedang", "Mudah"];
 
-// ── Bantu kecil ────────────────────────────────────────────────────────
-function levelAktif(h) {
-  if (!Array.isArray(h.levels) || h.levels.length === 0) return null;
-  return h.levels.find((l) => l.level === h.levelSekarang) || h.levels[0];
-}
 function escAttr(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
     .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// ── Daftar habit dikelompokkan: aktif (sedang dikerjakan) vs nonaktif ──
+function labelFrekuensi(f) {
+  if (!f) return "?";
+  if (f.tipe === "mingguan") return "Mingguan";
+  if (f.tipe === "bulanan") return "Bulanan";
+  if (f.tipe === "opsional") return "Ongoing/opsional";
+  return "Harian";
+}
+
 async function renderManajer() {
   const el = document.getElementById("manajer");
   if (!el) return;
@@ -66,19 +41,16 @@ async function renderManajer() {
   const aktif = habits.filter((h) => h.aktif);
   const nonaktif = habits.filter((h) => !h.aktif);
 
-  el.appendChild(grupHabit("Sedang dikerjakan", aktif, "Belum ada habit aktif — nyalakan sakelar di bawah."));
+  el.appendChild(grupHabit("Sedang dikerjakan", aktif, "Belum ada habit — klik “+ Habit Baru”."));
   el.appendChild(grupHabit("Nonaktif (arsip)", nonaktif, "Semua habit sedang aktif. 🌱"));
 }
 
-// Satu grup (judul + hitungan + daftar baris, atau pesan kosong).
 function grupHabit(judul, daftarHabit, pesanKosong) {
   const wrap = document.createElement("div");
-
   const jud = document.createElement("div");
   jud.className = "manajer-grup-judul";
   jud.innerHTML = `${judul} · <span class="jml">${daftarHabit.length} habit</span>`;
   wrap.appendChild(jud);
-
   if (daftarHabit.length === 0) {
     const kosong = document.createElement("p");
     kosong.className = "manajer-kosong";
@@ -86,7 +58,6 @@ function grupHabit(judul, daftarHabit, pesanKosong) {
     wrap.appendChild(kosong);
     return wrap;
   }
-
   const list = document.createElement("div");
   list.className = "manajer-list";
   for (const h of daftarHabit) list.appendChild(barisManajer(h));
@@ -94,9 +65,7 @@ function grupHabit(judul, daftarHabit, pesanKosong) {
   return wrap;
 }
 
-// Satu baris habit: [sakelar] [info] [Edit] [Hapus].
 function barisManajer(h) {
-  const lv = levelAktif(h);
   const baris = document.createElement("div");
   baris.className = "manajer-baris" + (h.aktif ? "" : " nonaktif");
 
@@ -118,10 +87,11 @@ function barisManajer(h) {
   nm.textContent = `${h.id} · ${h.nama}`;
   const meta = document.createElement("div");
   meta.className = "manajer-meta";
-  const tangga = Array.isArray(h.levels) ? `${h.levels.length} level` : "—";
-  meta.textContent =
-    `Tier ${h.tier} · ${h.xp} XP · ${h.frekuensi?.tipe || "?"} · ${tangga}` +
-    (lv && lv.target ? ` · sekarang: ${lv.target}` : "");
+  const bag = [h.kategori || "—", labelFrekuensi(h.frekuensi)];
+  if (h.frekuensi?.detil) bag.push(h.frekuensi.detil);
+  if (h.dampak) bag.push("Dampak " + h.dampak);
+  if (h.kesulitan) bag.push(h.kesulitan);
+  meta.textContent = bag.join(" · ");
   info.append(nm, meta);
 
   const aksi = document.createElement("div");
@@ -140,7 +110,6 @@ function barisManajer(h) {
   return baris;
 }
 
-// Nyalakan/matikan satu habit langsung dari daftar.
 async function toggleAktif(id) {
   const h = await ambil("habits", id);
   if (!h) return;
@@ -149,25 +118,20 @@ async function toggleAktif(id) {
   await simpan("habits", h);
   await renderManajer();
   if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
-  if (typeof renderDashboard === "function") await renderDashboard();
 }
 
-// ── Editor modal: buat baru (habit=null) atau edit ─────────────────────
 function bukaEditorHabit(habit) {
   const baru = !habit;
-  // salin dalam agar batal tidak mengubah data asli
   const h = habit
     ? JSON.parse(JSON.stringify(habit))
     : {
-        id: "", nama: "", kategori: "", tier: "B", rarity: "common",
-        xp: 10, frekuensi: { tipe: "harian" }, aktif: true,
-        levelSekarang: 1,
-        levels: [{ level: 1, milestone: "", target: "", nilai: null, satuan: "" }],
-        diubah: 0,
+        id: "", nama: "", kategori: "",
+        frekuensi: { tipe: "harian", detil: "" },
+        dampak: "Sedang", kesulitan: "Sedang",
+        tujuan: "", masalah: "", alasan: "", deskripsi: "",
+        aktif: true, diubah: 0,
       };
-  if (!Array.isArray(h.levels) || h.levels.length === 0) {
-    h.levels = [{ level: 1, milestone: "", target: "", nilai: null, satuan: "" }];
-  }
+  if (!h.frekuensi) h.frekuensi = { tipe: "harian" };
 
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
@@ -177,33 +141,24 @@ function bukaEditorHabit(habit) {
   modal.className = "modal modal-lebar";
   modal.innerHTML = `
     <h2 class="modal-judul">${baru ? "Habit Baru" : "Edit Habit"}</h2>
-    <p class="modal-desk">Perubahan langsung tersimpan ke penyimpananmu.</p>
-    <label class="modal-label">ID (unik, mis. H-28)
+    <p class="modal-desk">Isi mengikuti kartu habit di dokumen (Bab VI).</p>
+    <label class="modal-label">ID (unik, mis. H-01)
       <input class="modal-input" id="f-id" value="${escAttr(h.id)}" ${baru ? "" : "readonly"}>
     </label>
     <label class="modal-label">Nama
       <input class="modal-input" id="f-nama" value="${escAttr(h.nama)}">
     </label>
-    <label class="modal-label">Kategori
+    <label class="modal-label">Kategori (mis. Fisik · Spiritual · Karier, Sosial)
       <input class="modal-input" id="f-kategori" value="${escAttr(h.kategori)}">
-    </label>
-    <label class="modal-label">Tier
-      <select class="modal-input" id="f-tier">
-        ${["S","A","B","C"].map((t) => `<option ${h.tier===t?"selected":""}>${t}</option>`).join("")}
-      </select>
-    </label>
-    <label class="modal-label">Rarity
-      <select class="modal-input" id="f-rarity">
-        ${["common","rare","epic","legendary"].map((r) => `<option ${h.rarity===r?"selected":""}>${r}</option>`).join("")}
-      </select>
-    </label>
-    <label class="modal-label">XP per centang
-      <input class="modal-input" id="f-xp" type="number" min="0" value="${h.xp}">
     </label>
     <label class="modal-label">Frekuensi
       <select class="modal-input" id="f-frek">
-        ${["harian","mingguan","bulanan"].map((t) => `<option value="${t}" ${h.frekuensi?.tipe===t?"selected":""}>${t}</option>`).join("")}
+        ${[["harian","Harian"],["mingguan","Mingguan"],["bulanan","Bulanan"],["opsional","Ongoing / opsional"]]
+          .map(([v,t]) => `<option value="${v}" ${h.frekuensi?.tipe===v?"selected":""}>${t}</option>`).join("")}
       </select>
+    </label>
+    <label class="modal-label">Takaran / detail (opsional, mis. "30 menit", "3 push up")
+      <input class="modal-input" id="f-detil" value="${escAttr(h.frekuensi?.detil||"")}">
     </label>
     <label class="modal-label" id="wrap-hari" style="display:none">Hari (0=Min … 6=Sab), pisah koma
       <input class="modal-input" id="f-hari" value="${(h.frekuensi?.hari||[]).join(",")}">
@@ -211,17 +166,31 @@ function bukaEditorHabit(habit) {
     <label class="modal-label" id="wrap-tanggal" style="display:none">Tanggal (1–31)
       <input class="modal-input" id="f-tanggal" type="number" min="1" max="31" value="${h.frekuensi?.tanggal||1}">
     </label>
+    <label class="modal-label">Tingkat Dampak
+      <select class="modal-input" id="f-dampak">
+        ${DAMPAK.map((d) => `<option ${h.dampak===d?"selected":""}>${d}</option>`).join("")}
+      </select>
+    </label>
+    <label class="modal-label">Tingkat Kesulitan
+      <select class="modal-input" id="f-kesulitan">
+        ${KESULITAN.map((d) => `<option ${h.kesulitan===d?"selected":""}>${d}</option>`).join("")}
+      </select>
+    </label>
+    <label class="modal-label">Tujuan
+      <textarea class="modal-input" id="f-tujuan" rows="2">${escAttr(h.tujuan)}</textarea>
+    </label>
+    <label class="modal-label">Masalah yang Diselesaikan
+      <textarea class="modal-input" id="f-masalah" rows="2">${escAttr(h.masalah)}</textarea>
+    </label>
+    <label class="modal-label">Alasan Penting
+      <textarea class="modal-input" id="f-alasan" rows="3">${escAttr(h.alasan)}</textarea>
+    </label>
+    <label class="modal-label">Deskripsi (opsional)
+      <textarea class="modal-input" id="f-deskripsi" rows="2">${escAttr(h.deskripsi)}</textarea>
+    </label>
     <label class="modal-label" style="display:flex;align-items:center;gap:8px">
       <input type="checkbox" id="f-aktif" ${h.aktif?"checked":""} style="width:auto"> Aktif (tampil di checklist)
     </label>
-
-    <h3 class="modal-sub">Tangga Level</h3>
-    <p class="modal-desk">Tiap level: milestone · target (teks) · nilai (angka, opsional) · satuan.</p>
-    <div class="level-head">
-      <span>Lv</span><span>Milestone</span><span>Target</span><span>Nilai</span><span>Satuan</span><span></span>
-    </div>
-    <div id="level-list"></div>
-    <button class="tombol" id="btn-tambah-level" style="margin-top:8px">+ Tambah Level</button>
 
     <div class="modal-aksi">
       <button class="tombol" id="btn-batal">Batal</button>
@@ -231,7 +200,6 @@ function bukaEditorHabit(habit) {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
-  // Frekuensi: tampilkan input tambahan sesuai tipe
   const selFrek = modal.querySelector("#f-frek");
   const wrapHari = modal.querySelector("#wrap-hari");
   const wrapTgl = modal.querySelector("#wrap-tanggal");
@@ -242,72 +210,35 @@ function bukaEditorHabit(habit) {
   selFrek.addEventListener("change", toggleFrek);
   toggleFrek();
 
-  // Baris-baris level
-  const levelList = modal.querySelector("#level-list");
-  function gambarLevels() {
-    levelList.innerHTML = "";
-    h.levels.forEach((lv, i) => {
-      const row = document.createElement("div");
-      row.className = "level-row";
-      row.innerHTML = `
-        <span class="level-no">${i + 1}</span>
-        <input class="modal-input lv-milestone" placeholder="milestone" value="${escAttr(lv.milestone||"")}">
-        <input class="modal-input lv-target" placeholder="mis. 5 push up/hari" value="${escAttr(lv.target||"")}">
-        <input class="modal-input lv-nilai" type="number" placeholder="nilai" value="${lv.nilai ?? ""}">
-        <input class="modal-input lv-satuan" placeholder="satuan" value="${escAttr(lv.satuan||"")}">
-        <button class="tombol lv-hapus" title="Hapus level">✕</button>
-      `;
-      row.querySelector(".lv-milestone").addEventListener("input", (e) => (lv.milestone = e.target.value));
-      row.querySelector(".lv-target").addEventListener("input", (e) => (lv.target = e.target.value));
-      row.querySelector(".lv-nilai").addEventListener("input", (e) => (lv.nilai = e.target.value === "" ? null : Number(e.target.value)));
-      row.querySelector(".lv-satuan").addEventListener("input", (e) => (lv.satuan = e.target.value));
-      row.querySelector(".lv-hapus").addEventListener("click", () => {
-        if (h.levels.length <= 1) { alert("Minimal harus ada 1 level."); return; }
-        h.levels.splice(i, 1);
-        h.levels.forEach((l, idx) => (l.level = idx + 1)); // rapikan nomor
-        gambarLevels();
-      });
-      levelList.appendChild(row);
-    });
-  }
-  gambarLevels();
-
-  modal.querySelector("#btn-tambah-level").addEventListener("click", () => {
-    h.levels.push({ level: h.levels.length + 1, milestone: "", target: "", nilai: null, satuan: "" });
-    gambarLevels();
-  });
-
   modal.querySelector("#btn-batal").addEventListener("click", () => overlay.remove());
   modal.querySelector("#btn-simpan").addEventListener("click", async () => {
+    const val = (id) => modal.querySelector(id).value.trim();
     const data = {
-      id: modal.querySelector("#f-id").value.trim(),
-      nama: modal.querySelector("#f-nama").value.trim(),
-      kategori: modal.querySelector("#f-kategori").value.trim(),
-      tier: modal.querySelector("#f-tier").value,
-      rarity: modal.querySelector("#f-rarity").value,
-      xp: Number(modal.querySelector("#f-xp").value) || 0,
+      id: val("#f-id"),
+      nama: val("#f-nama"),
+      kategori: val("#f-kategori"),
+      dampak: modal.querySelector("#f-dampak").value,
+      kesulitan: modal.querySelector("#f-kesulitan").value,
+      tujuan: val("#f-tujuan"),
+      masalah: val("#f-masalah"),
+      alasan: val("#f-alasan"),
+      deskripsi: val("#f-deskripsi"),
       aktif: modal.querySelector("#f-aktif").checked,
-      levelSekarang: h.levelSekarang || 1,
-      levels: h.levels,
       diubah: Date.now(),
     };
     const tipe = selFrek.value;
+    const detil = val("#f-detil");
     if (tipe === "mingguan") {
-      data.frekuensi = {
-        tipe,
-        hari: modal.querySelector("#f-hari").value.split(",")
-          .map((s) => Number(s.trim())).filter((n) => !Number.isNaN(n)),
-      };
+      data.frekuensi = { tipe, detil, hari: val("#f-hari").split(",").map((s) => Number(s.trim())).filter((n) => !Number.isNaN(n)) };
     } else if (tipe === "bulanan") {
-      data.frekuensi = { tipe, tanggal: Number(modal.querySelector("#f-tanggal").value) || 1 };
+      data.frekuensi = { tipe, detil, tanggal: Number(modal.querySelector("#f-tanggal").value) || 1 };
     } else {
-      data.frekuensi = { tipe: "harian" };
+      data.frekuensi = { tipe, detil };
     }
     if (await simpanHabit(data, baru)) overlay.remove();
   });
 }
 
-// ── Simpan (dengan validasi) ───────────────────────────────────────────
 async function simpanHabit(data, baru) {
   if (!data.id) { alert("ID wajib diisi."); return false; }
   if (!data.nama) { alert("Nama wajib diisi."); return false; }
@@ -315,20 +246,12 @@ async function simpanHabit(data, baru) {
     alert(`ID "${data.id}" sudah dipakai. Pilih ID lain.`);
     return false;
   }
-  if (!Array.isArray(data.levels) || data.levels.length === 0) {
-    data.levels = [{ level: 1, milestone: "", target: "", nilai: null, satuan: "" }];
-  }
-  if (!data.levelSekarang || data.levelSekarang < 1) data.levelSekarang = 1;
-  if (data.levelSekarang > data.levels.length) data.levelSekarang = data.levels.length;
-
   await simpan("habits", data);
   await renderManajer();
   if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
-  if (typeof renderDashboard === "function") await renderDashboard();
   return true;
 }
 
-// ── Hapus (dengan konfirmasi; opsi bersihkan log) ──────────────────────
 async function hapusHabit(id) {
   if (!confirm(`Hapus habit "${id}"? Tindakan ini tidak bisa dibatalkan.`)) return;
   await hapus("habits", id);
@@ -338,5 +261,4 @@ async function hapusHabit(id) {
   }
   await renderManajer();
   if (typeof tampilkanChecklist === "function") await tampilkanChecklist();
-  if (typeof renderDashboard === "function") await renderDashboard();
 }
